@@ -38,12 +38,14 @@
 
 .tab {
     overflow: hidden;
-    border: 1px solid #ccc;
-    background-color: #f1C1C1;
+    border: 3px solid #ccc;
+    color: #FFFFFF;
+    background-color: #f14141;
 }
 
 /* Style the buttons that are used to open the tab content */
 .tab button {
+    color: #FFFFFF;
     background-color: inherit;
     float: left;
     border: none;
@@ -77,7 +79,7 @@
 </head>
 
 <?php $_SESSION['active_tab'] = 'System'; ?>
-<body onload="InitializeStatusPage();">
+<body >
 <h2>Beyond Kinetics Tank Plus</h2>
 
 <div class="tab">
@@ -101,9 +103,8 @@
 <script>
 function InitializeStatusPage() {
 	//openCity(event, "<?php echo $_SESSION['active_tab']; ?>" );
-}
+};
 function openCity(evt, cityName) {
-InitializeStatusPage();
     // Declare all variables
     var i, tabcontent, tablinks;
 
@@ -122,12 +123,9 @@ InitializeStatusPage();
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(cityName).style.display = "block";
     evt.currentTarget.className += " active";
-}
+};
 //var tabs = document.getElementsByClassName("tablinks");
 //var event.currentTarget = tabs[0];
-
-//
-
 </script>
 
 </body>

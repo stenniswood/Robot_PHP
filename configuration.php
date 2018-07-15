@@ -80,7 +80,10 @@ function myFunction() {
 	}
 	function read_mechatronic_status() {
 			$retval = exec('ps -u www-data | grep joys', $out);
-			$_SESSION["all_status"] = $out;
+			if (count($out)==0)
+				$_SESSION["mechatronic_status"] = "Not running";
+			else 
+				$_SESSION["mechatronic_status"] = "Running";
 			return $out;
 	}
 	
@@ -98,12 +101,7 @@ function myFunction() {
 			$_SESSION["mechatronic_status"] = $retval;
 	}
 	function start_vision_sense() {
-			exec('/home/pi/bk_code/xeyes/xeyes > visionsense.log', $out);
-			//echo "catting color_test.c...";
-			//$status = exec('/home/pi/bk_code/cat color_test.c > vision.txt', $out);
-			//echo $status;
-			//echo "<br>";
-			
+			exec('/home/pi/bk_code/xeyes/xeyes > visionsense.log', $out);			
 			$_SESSION["vision_sense_status"] = $status;
 	}
 	function start_batterymonitor() {
@@ -121,8 +119,7 @@ function myFunction() {
 			$_SESSION["mechatronic_status"]     = "Stopped";
 			$_SESSION["vision_sense_status"]    = "Stopped";
 			$_SESSION["battery_monitor_status"] = "Stopped";
-			$_SESSION["remote_video_status"]    = "Stopped";						
-			
+			$_SESSION["remote_video_status"]    = "Stopped";									
 	}
 	// VIEW LOGS FUNCTIONS:
 	function view_log_mechatronics() {
@@ -166,9 +163,8 @@ function myFunction() {
 		start_remotevideo();
 	}
 
-	$result = read_mechatronic_status();
-	//$result = read_status();
-	echo_array($result);
+	//$result = read_mechatronic_status();
+	//echo_array($result);
 ?>
 
 <div id="Configuration" class="tabcontent">
@@ -179,7 +175,7 @@ function myFunction() {
 	<button class="checkbox" >Autonomous Mode</button><br>
 	<button class="checkbox" >Manual PS4 Mode</button><br>
 	<table>
-	<tr><th width="120">Service</th><th>Status</th><th width="150">Log</th></tr>
+	<tr><th width="120">Service</th><th>Status</th><th width="50">Log</th></tr>
 
 	<tr><td><input  class="btn_restart" type="checkbox" width="50" id="mechatronic" name="mechatronic" value="start" >Start Mechatronic Module</td>
 	<td><?php echo $_SESSION["mechatronic_status"]?></td>
@@ -199,10 +195,42 @@ function myFunction() {
 	</form>
 </fieldset>
 
+<?php
+	$dir    = '/dev/';
+	$Devicefiles = scandir($dir);
+	$ttyUSBOnly = array_filter($Devicefiles, function($file) { 	
+			if (strpos($file, 'ttyUSB') !== false)
+				return true;
+			else return false;
+   });
+
+	foreach ($ttyUSBOnly as $dev) 
+	{
+		$fulldev = "/dev/".$dev;
+	/*	$fd = dio_open(	$fulldev, O_RDWR | O_NOCTTY | O_NONBLOCK);
+		dio_fcntl($fd, F_SETFL, O_SYNC);
+		dio_tcsetattr($fd, array(
+		  'baud' => 38400,
+		  'bits' => 8,
+		  'stop'  => 1,
+		  'parity' => 0
+		));
+
+		dio_write($fd, "device type",1);
+		$data = dio_read($fd, 256);
+		if ($data) {
+		  echo $data;
+		} */
+	};
+?>
 
  <fieldset>
   <legend>Devices:</legend>
 	<p>
+	<?php foreach ($ttyUSBOnly as $dev)	echo "/dev/"."$dev"."<br>";
+	
+	?>
+	<br>
 	<select id="Device">
 	<option value="0" selected>(please select:)</option>
 	<option value="1">DriveFive</option>
@@ -216,7 +244,7 @@ function myFunction() {
 	<button  onclick="addDevice(); ListDevices()"> + Add board</button><br>
 	</p>
   
-	<div id="demo2" width="80"  >Hello Steve!</div>
+
 	<form action="index.php">
 	<input name="save_devs" type="hidden" value="save"></input>
 	<button type="submit" method="post" value="submit">Save</button>

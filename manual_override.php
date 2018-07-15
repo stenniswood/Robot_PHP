@@ -103,7 +103,12 @@ xlabel.innerHTML = xslider.value;
 ylabel.innerHTML = yslider.value;
 zlabel.innerHTML = zslider.value;
 
-vstop.onclick = function() {   vslider.value = 0;	vlabel.innerHTML = vslider.value;	updatePWMs();	}
+vstop.onclick = function() {   
+	vslider.value = 0;	vlabel.innerHTML = vslider.value;	
+	if ((sync.checked) || (spin.checked))
+	{	wslider.value = 0;		wlabel.innerHTML = wslider.value;	}
+	updatePWMs();	
+}
 wstop.onclick = function() {   wslider.value = 0;	wlabel.innerHTML = wslider.value;	updatePWMs();	}
 xstop.onclick = function() {   xslider.value = 0;	xlabel.innerHTML = xslider.value;	updatePWMs();	}
 ystop.onclick = function() {   yslider.value = 0;	ylabel.innerHTML = yslider.value;	updatePWMs();	}
@@ -150,7 +155,7 @@ allstop.onclick = function()
 
 vslider.oninput = function() { 
   vlabel.innerHTML = this.value;  
-	if (sync.checked) {
+	if (sync.checked) {		
 		wslider.value    = vslider.value;
 		wlabel.innerHTML = vslider.value;
 	} else if (spin.checked) {
@@ -177,7 +182,9 @@ zslider.oninput = function() {
   updatePWMs();
 }
 
-function updatePWMs() {
+// VIA AJAX, this 
+function updatePWMs() 
+{
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
@@ -185,7 +192,6 @@ function updatePWMs() {
       this.responseText;
     }
   };
-  
   var str = "text=pwm v"+(vslider.value/100.0).toFixed(2);
   str += " w" + (wslider.value/100.0 ).toFixed(2);
   str += " x" + (xslider.value/100.0 ).toFixed(2);  
@@ -194,6 +200,20 @@ function updatePWMs() {
   xhttp.open("GET", "shm_joy.php?"+str, true);
   xhttp.send("wduty=1.0");
 }
+
+function getDeviceType() 
+{
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      document.getElementById("result_text").innerHTML =
+      this.responseText;
+    }
+  };
+  var str = "device type";
+  xhttp.open("GET", "shm_joy.php?"+str, true);
+  xhttp.send("wduty=1.0");
+};
 
 </script>
 
