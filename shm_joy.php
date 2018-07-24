@@ -3,8 +3,9 @@
 <?php
 
 	// get the q parameter from URL
-	$q = $_REQUEST["vduty"];
-	var_dump( $_REQUEST );
+	//$q = $_REQUEST["vduty"];
+	//var_dump( $_REQUEST );
+	echo $_REQUEST["text"];
 
 	$IPC_KEY_SEQ 		   = 0x04D5;
 	$sizeofData            = 888;

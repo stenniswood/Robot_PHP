@@ -13,50 +13,18 @@
 
  <fieldset>
   <legend>Devices:</legend>
-	<p>
-	<select id="Device">
-	<option value="0" selected>(please select:)</option>
-	<option value="1">DriveFive</option>
-	<option value="2">Power Distributor</option>
-	<option value="3">PiCamScan</option>
-	<option value="4">Eyes</option>
-	<option value="other">other</option>
-	</select>
-	Device Name: <input type="text" id="devpath" value="/dev/usbtty0" width="80" >
-	<button  onclick="ListDevices()"> + Add board</button><br>
-	</p>
-  
-	<div id="demo2" width="80"  >Hello Steve!</div>
-	<form action="index.php">
-	<input name="save_devs" type="hidden" value="save"></input>
-	<button type="submit" method="post" value="submit">Save</button>
-	</form>
+  <?php print_device_table();  ?>
  </fieldset>
 
-<fieldset>
-  <legend>Devices:</legend>
-  <table><tr>
-  <th width="40"></th><th width="150">Path</th><th width="150">Name</th><th width="300">Status</th>
-  </tr>
-  <?php
-  	$deviceInfo["Dev"]    = "/dev/ttyUSB0";
-  	$deviceInfo["Name"]   = "DriveFive";
-  	$deviceInfo["Status"] = "Fully Operational";
-  	
-  	for ($i=0; $i<10; $i++)
-  	{
-  		echo "<td>$i</td><td>".$deviceInfo["Dev"]."</td><td>".$deviceInfo["Name"]."</td><td>".$deviceInfo["Status"]. "</td></tr>";
-
-  	}
-  ?>
-  </table>
-</fieldset>
 
 </div>
 
 
-<div id="Controller" class="tabcontent2">
-Hello PS4 Controller:<br>
+<div id="Controller" class="tabcontent2" style="display:none" > 
+ <fieldset>
+	<legend>Devices:</legend>
+	<?php include "ps4_controller_status.php"; ?>
+ </fieldset>
 </div>
 
 </div>

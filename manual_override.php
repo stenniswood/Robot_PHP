@@ -218,15 +218,38 @@ function getDeviceType()
 </script>
 
 
-<fieldset>
-<legend>Eyes</legend>
-<table>
-<tr><td>
-UpDown.  </td><td></td><td><input type="range" min="-100" max="100" value="0" class="eyeranger" id="updown" orient="vertical"></td></tr>
-<tr><td>
-LeftRight</td><td><input type="range" min="-100" max="100" value="0" class="slider" id="v"></td></tr>
-</table>
 
+
+<fieldset id="EyeGroup" >
+<legend>Eyes</legend>
+<canvas id="eyeCanvas" width="200" height="100" style="border:1px solid #000000;"
+	onmousemove="update_eye_position(event); send_to_usb_device(); draw_eyes();" 
+	onclick="toggle_mouse_track();"> 
+</canvas>
+<script type="text/javascript" src="eye_script.js"></script>
+</fieldset>
+<?php
+	function ani_eyes_present()
+	{
+	
+	}
+	
+	$available = ani_eyes_present();
+	if ($available==false)
+	{
+		// make eye group INVISIBLE
+	}
+?>
+
+<fieldset>
+<legend>Load Cell</legend>
+<canvas id="loadcellCanvas" width="100" height="100" style="border:1px solid #000000;"
+	onmousemove="update_cell_forces(event); draw_cells();" > 
+</canvas>
+<script type="text/javascript" src="loadcell_script.js"></script>
+</fieldset>
+
+<br>
 <?php
 	$AnalogInputs[0] = 0x15C;
 	$AnalogInputs[1] = 0x16C;
@@ -247,11 +270,20 @@ LeftRight</td><td><input type="range" min="-100" max="100" value="0" class="slid
 	$Lowside[7] = "Off";
 ?>
 
-</fieldset>
-<br>
+<script>
+	/*var Lowside;
+	Lowside = <?php echo $Lowside[0]; ?>;
+	
+	function toggle_lowside(index) {
+		Lowside[index] = !Lowside[index];
+	}*/
+
+</script>
+
 <fieldset>
 <legend>Pi Aux</legend>
-<table>
+<div>
+<table style="float:left">
 <tr><td width="150">Analog 1</td><td width="100"><?php echo $AnalogInputs[0]; ?></td></tr>
 <tr><td>Analog 2</td><td><?php echo $AnalogInputs[1]; ?></td></tr>
 <tr><td>Analog 3</td><td><?php echo $AnalogInputs[2]; ?></td></tr>
@@ -260,22 +292,20 @@ LeftRight</td><td><input type="range" min="-100" max="100" value="0" class="slid
 <tr><td>Analog 6</td><td><?php echo $AnalogInputs[5]; ?></td></tr>
 <tr><td>Analog 7</td><td><?php echo $AnalogInputs[6]; ?></td></tr>
 <tr><td>Analog 8</td><td><?php echo $AnalogInputs[7]; ?></td></tr>
-
+</table>
+<table>
 <tr><td>Lowside Driver 1</td><td width="100"><button><?php echo $Lowside[0]; ?></button></td></tr>
-<tr><td>Lowside Driver 2</td><td><button><?php echo $Lowside[1]; ?></button></td></tr>
+<tr><td>Lowside Driver 2</td><td><button onclick=""><?php echo $Lowside[1]; ?></button></td></tr>
 <tr><td>Lowside Driver 3</td><td><button><?php echo $Lowside[2]; ?></button></td></tr>
 <tr><td>Lowside Driver 4</td><td><button><?php echo $Lowside[3]; ?></button></td></tr>
 <tr><td>Lowside Driver 5</td><td><button><?php echo $Lowside[4]; ?></button></td></tr>
 <tr><td>Lowside Driver 6</td><td><button><?php echo $Lowside[5]; ?></button></td></tr>
 <tr><td>Lowside Driver 7</td><td><button><?php echo $Lowside[6]; ?></button></td></tr>
 <tr><td>Lowside Driver 8</td><td><button><?php echo $Lowside[7]; ?></button></td></tr>
-
 </table>
+</div>
 
 </fieldset>
 
-
-<button class="btn restart" onclick="/home/pi/bk_code/joystick_test/joys" >Restart Robot Service</button>
-<button class="btn stop" >Stop</button>
 </div>
 

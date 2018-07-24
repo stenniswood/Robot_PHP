@@ -124,6 +124,7 @@ function myFunction() {
 	// VIEW LOGS FUNCTIONS:
 	function view_log_mechatronics() {
 			exec('cat mechatronic.log', $out);
+			echo_array($result);
 			$_SESSION["mechatronic_status"] = "Running";
 	}
 	function view_log_vision_sense() {
@@ -196,41 +197,102 @@ function myFunction() {
 </fieldset>
 
 <?php
-	$dir    = '/dev/';
-	$Devicefiles = scandir($dir);
-	$ttyUSBOnly = array_filter($Devicefiles, function($file) { 	
-			if (strpos($file, 'ttyUSB') !== false)
-				return true;
-			else return false;
-   });
+	function QueryDeviceType($dev_name) {
+			error_reporting(E_ERROR | E_WARNING | E_PARSE);
+			$fd = fopen( $dev_name, "w+" );
+			if ($fd==FALSE) {
+				echo "Cannot open device: ".$dev_name;
+				return "UNKNOWN";
+			}
+		/*	dio_fcntl($fd, F_SETFL, O_SYNC);
+			dio_tcsetattr($fd, array(
+			  'baud' => 38400,
+			  'bits' => 8,
+			  'stop'  => 1,
+			  'parity' => 0
+			)); */
 
-	foreach ($ttyUSBOnly as $dev) 
-	{
-		$fulldev = "/dev/".$dev;
-	/*	$fd = dio_open(	$fulldev, O_RDWR | O_NOCTTY | O_NONBLOCK);
-		dio_fcntl($fd, F_SETFL, O_SYNC);
-		dio_tcsetattr($fd, array(
-		  'baud' => 38400,
-		  'bits' => 8,
-		  'stop'  => 1,
-		  'parity' => 0
-		));
-
-		dio_write($fd, "device type",1);
-		$data = dio_read($fd, 256);
-		if ($data) {
-		  echo $data;
-		} */
+			$result = fwrite( $fd, "device type\r\n" );
+			
+			// Some device echo back our command, others don't!
+			do {
+				$i=0;
+				do {
+					$data = fgets($fd);
+					$i++;
+				} while (($data==false) && ($i<1000));
+				$found = strpos( $data, ":");				
+			} while ($found==FALSE);
+			fclose($fd);
+			
+			if ($data==false)	return "unknown type";
+						
+			$result = explode(": ", $data );
+			if ($result[1]==NULL)
+				return "unknown type";
+			return $result[1];
 	};
+	function ScanDevices() {
+		global $deviceInfo;	
+		$dir    = '/dev/';
+		$Devicefiles = scandir($dir);
+		$ttyUSBOnly = array_filter($Devicefiles, function($file) { 	
+				if ((strpos($file, 'ttyUSB') !== false) ||
+					(strpos($file, 'ttyACM') !== false))
+					return true;
+				else return false;
+	   });
+
+		$i=0;
+		foreach ($ttyUSBOnly as $dev) 
+		{
+			$deviceInfo[$i]['path'] = "/dev/".$dev;
+			$deviceInfo[$i]['status'] = "Available";
+			
+			//echo $fulldev."  ".$i."<br>";
+			$deviceInfo[$i]['type'] = QueryDeviceType( $deviceInfo[$i]['path'] );
+			$i++;
+		}; 
+
+	};
+
+	function ListDevices() {
+		global $deviceInfo;
+		$numDevice = count( $deviceInfo );
+		echo "Auto detected ".$numDevice." devices.<br>";
+		$i=0;
+		foreach ($deviceInfo as $di)
+		{
+			echo "<tr><td>". $i;
+			echo "</td><td>".$di['path']."</td>";
+			echo "<td>". $di['type']. "</td>";
+			echo "<td>". $di['status']. "</td>";	
+			echo "</tr>";		
+			$i++;
+		}
+	};
+	function print_device_table() 
+	{
+		echo <<< EOT
+		<table border="1"><tr>		
+		<th width="40" align="left">ID</th>
+		<th width="150" align="left">Path</th>
+		<th width="150" align="left">Name</th>
+		<th width="300" align="left">Status</th></tr>
+EOT;
+		ListDevices();	
+		echo "</table>";
+	}
+	
+	ScanDevices();
 ?>
 
  <fieldset>
   <legend>Devices:</legend>
-	<p>
-	<?php foreach ($ttyUSBOnly as $dev)	echo "/dev/"."$dev"."<br>";
-	
-	?>
+	<?php print_device_table(); ?>
+
 	<br>
+	Manual Configuration : 
 	<select id="Device">
 	<option value="0" selected>(please select:)</option>
 	<option value="1">DriveFive</option>
@@ -242,7 +304,6 @@ function myFunction() {
 	</select>
 	Device Name: <input type="text" id="devpath" value="/dev/usbtty0" width="80" >
 	<button  onclick="addDevice(); ListDevices()"> + Add board</button><br>
-	</p>
   
 
 	<form action="index.php">

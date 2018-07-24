@@ -3,10 +3,11 @@
 
 <fieldset>
 <legend>Summary:</legend>
-<table><tr>
-<td>IP Address</td><td>IP Address</td>
-</tr><tr>
-<td width="200px">Elapsed Time</td><td><?php echo date('Y-m-d H:i:s'); ?></td>
+<table>
+<tr><td>IP Address</td><td><?php echo $_SERVER['SERVER_ADDR']; ?></td></tr>
+<tr><td>Connecting from </td><td><?php echo $_SERVER['REMOTE_ADDR']; ?></td></tr>
+<tr>
+<td width="200px">Current Time</td><td><?php echo date('Y-m-d H:i:s'); ?></td>
 </tr><tr>
 <td>Battery Level    </td><td><?php echo "13.6v       88.5%"; ?></td>
 </tr><tr>

@@ -83,28 +83,28 @@
 <h2>Beyond Kinetics Tank Plus</h2>
 
 <div class="tab">
-  <button class="tablinks" onclick="openCity(event, 'System')"		 >System</button>
-  <button class="tablinks" onclick="openCity(event, 'Configuration')">Robot Configuration</button>
-  <button class="tablinks" onclick="openCity(event, 'Status')"		 >Robot Status</button>
-  <button class="tablinks" onclick="openCity(event, 'ManualOverrides')">Manual Overrides</button>
-  <button class="tablinks" onclick="openCity(event, 'Network')"		>Network</button>
-  <button class="tablinks"  onclick="openCity(event, 'Camera')"		>Camera</button>
+  <button class="tablinks" onclick="openPage(event, 'System')"		 >System</button>
+  <button class="tablinks" onclick="openPage(event, 'Configuration')">Robot Configuration</button>
+  <button class="tablinks" onclick="openPage(event, 'Status')"		 >Robot Status</button>
+  <button class="tablinks" onclick="openPage(event, 'ManualOverrides')">Manual Overrides</button>
+  <button class="tablinks" onclick="openPage(event, 'Sequencer')"		>Sequencer</button>
+  <button class="tablinks" onclick="openPage(event, 'Network')"		>Network</button>  
+  <button class="tablinks"  onclick="openPage(event, 'Camera')"		>Camera</button>
 </div>
 
 <?php include "System.php" ?>
 <?php include "configuration.php" ?>
 <?php include "manual_override.php" ?>
 <?php include "status.php" ?>
+<?php include "sequencer.php" ?>
 <?php include "network.php" ?>
 <?php include "camera.php" ?>
-
-
 
 <script>
 function InitializeStatusPage() {
 	//openCity(event, "<?php echo $_SESSION['active_tab']; ?>" );
-};
-function openCity(evt, cityName) {
+}
+function openPage(evt, PageName) {
     // Declare all variables
     var i, tabcontent, tablinks;
 
@@ -121,12 +121,13 @@ function openCity(evt, cityName) {
     }
 
     // Show the current tab, and add an "active" class to the button that opened the tab
-    document.getElementById(cityName).style.display = "block";
+    document.getElementById(PageName).style.display = "block";
     evt.currentTarget.className += " active";
 };
 //var tabs = document.getElementsByClassName("tablinks");
 //var event.currentTarget = tabs[0];
 </script>
+
 
 </body>
 </html>
