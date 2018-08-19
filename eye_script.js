@@ -46,26 +46,31 @@ function toggle_mouse_track(event)
 var l_eye_msg;
 var r_eye_msg;
 var MAX = radius - pupil_radius;
-	
-function send_to_ani_eyes_left()
-{
-	var lr_deg = Math.round( (LeftPupil_LR_Offset / MAX) * 60 );
-	var ud_deg = Math.round( (LeftPupil_UD_Offset / MAX) * 60 );
+var mirrorImage = true;
 
+function calc_anieyes_msg_left()
+{	
+	var lr_deg;
+	var ud_deg;
+	if (mirrorImage) {
+		lr_deg = Math.round( (-LeftPupil_LR_Offset / MAX) * 60 );	}
+	ud_deg = Math.round( (-LeftPupil_UD_Offset / MAX) * 60 );
+	
 	l_eye_msg = "left look at ";
 	l_eye_msg += lr_deg + " " + ud_deg + "\r\n";
 	
 	// From Javascript we need Ajax to send to server (PHP).	
 }
 
-function send_to_ani_eyes_right()
+function calc_anieyes_msg_right()
 {
+	var lr_deg;
+	var ud_deg;
+	if (mirrorImage) 
+		lr_deg = Math.round( (-RightPupil_LR_Offset / MAX) * 60 );
+	ud_deg = Math.round( (-RightPupil_UD_Offset / MAX) * 60 );	
 	r_eye_msg = "right look at ";
-	var lr_deg = Math.round( (LeftPupil_LR_Offset / MAX) * 60 );
-	var ud_deg = Math.round( (LeftPupil_UD_Offset / MAX) * 60 );	
 	r_eye_msg +=  lr_deg + " " + ud_deg + "\r\n";
-	
-	// From Javascript we need Ajax to send to server (PHP).
 }
 
 function update_eye_position(event)
@@ -84,9 +89,10 @@ function update_eye_position(event)
 	RightPupil_UD_Offset = (y-rect.height/2.)/rect.height/2 * 1.5*radius;	
 }
 
-
-function send_to_usb_device() 
+function blink_eye_to_usb_device() 
 {
+  if (eye_present==false)
+  	return;
   if (track_mouse) {
 	  var xhttp = new XMLHttpRequest();
 	  xhttp.onreadystatechange = function() {
@@ -95,11 +101,11 @@ function send_to_usb_device()
 		  this.responseText;
 		}
 	  };
-	  send_to_ani_eyes_left();
-	  send_to_ani_eyes_right();
+	  calc_anieyes_msg_left ();
+	  calc_anieyes_msg_right();
 	  
-	  var str = "eye_msg_left="+l_eye_msg+"&eye_msg_right="+r_eye_msg;
-	  str += "&dev_fname="+"/dev/ttyACM0";
+	  var str = "eye_msg_left=blink"+"&eye_msg_right=blink";
+	  str += "&dev_fname="+"/dev/ttyACM2";
 
 	  xhttp.open("GET", "eye_update.php?"+str, true);
 	  xhttp.send("");
@@ -107,3 +113,29 @@ function send_to_usb_device()
 }
 
 
+// From Javascript we need Ajax to send to server (PHP).
+function send_to_usb_device() 
+{
+  if (eye_present==false)
+  	return;
+  if (track_mouse) {
+	  var xhttp = new XMLHttpRequest();
+	  xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+		  document.getElementById("result_text").innerHTML =
+		  this.responseText;
+		}
+	  };
+	  calc_anieyes_msg_left ();
+	  calc_anieyes_msg_right();
+	  
+	  var str = "eye_msg_left="+l_eye_msg+"&eye_msg_right="+r_eye_msg;
+	  str += "&dev_fname="+"/dev/ttyACM2";
+
+	  xhttp.open("GET", "eye_update.php?"+str, true);
+	  xhttp.send("");
+  }
+}
+
+
+draw_eyes();

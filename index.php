@@ -5,6 +5,9 @@
 
 
 <style>
+tr:hover {background-color:#f5f5f5;}
+
+
 .btn {
     border: none;
     background-color: #efe;
@@ -76,29 +79,35 @@
 
 </style>
 <title>BK Robot</title>
+<?php include "sim_3d_head.php" ?>
+
 </head>
 
 <?php $_SESSION['active_tab'] = 'System'; ?>
-<body >
+<body  onload="webGLStart();" >
 <h2>Beyond Kinetics Tank Plus</h2>
 
 <div class="tab">
-  <button class="tablinks" onclick="openPage(event, 'System')"		 >System</button>
-  <button class="tablinks" onclick="openPage(event, 'Configuration')">Robot Configuration</button>
-  <button class="tablinks" onclick="openPage(event, 'Status')"		 >Robot Status</button>
-  <button class="tablinks" onclick="openPage(event, 'ManualOverrides')">Manual Overrides</button>
+  <button class="tablinks" onclick="openPage(event, 'System')"		 	>System</button>
+  <button class="tablinks" onclick="openPage(event, 'Configuration')"	>Robot Configuration</button>
+  <button class="tablinks" onclick="openPage(event, 'Status')"		 	>Robot Status</button>
+  <button class="tablinks" onclick="openPage(event, 'ManualOverrides')"	>Manual Overrides</button>
   <button class="tablinks" onclick="openPage(event, 'Sequencer')"		>Sequencer</button>
-  <button class="tablinks" onclick="openPage(event, 'Network')"		>Network</button>  
-  <button class="tablinks"  onclick="openPage(event, 'Camera')"		>Camera</button>
+  <button class="tablinks" onclick="openPage(event, 'Network')"			>Network</button>  
+  <button class="tablinks"  onclick="openPage(event, 'Camera')"			>Camera</button>
+  <button class="tablinks"  onclick="openPage(event, 'Map')"			>Map</button>
+  <button class="tablinks"  onclick="openPage(event, 'Sim3D')"			>3D Sim</button>  
 </div>
 
-<?php include "System.php" ?>
-<?php include "configuration.php" ?>
+<?php include "System.php" 			?>
+<?php include "configuration.php" 	?>
 <?php include "manual_override.php" ?>
-<?php include "status.php" ?>
-<?php include "sequencer.php" ?>
-<?php include "network.php" ?>
-<?php include "camera.php" ?>
+<?php include "status.php" 			?>
+<?php include "sequencer.php" 		?>
+<?php include "network.php" 		?>
+<?php include "camera.php" 			?>
+<?php include "map.php" 			?>
+<?php include "sim_3d.php" 			?>
 
 <script>
 function InitializeStatusPage() {
