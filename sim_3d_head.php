@@ -155,6 +155,7 @@
         triangleVertexPositionBuffer.itemSize = 3;
         triangleVertexPositionBuffer.numItems = 3;
 
+
         triangleVertexColorBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexColorBuffer);
         var colors = [
@@ -200,9 +201,7 @@
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
-
         mat4.identity(mvMatrix);
-
         mat4.translate(mvMatrix, [-1.5, 0.0, -7.0]);
 
         mvPushMatrix();
@@ -217,6 +216,7 @@
         setMatrixUniforms();
         gl.drawArrays(gl.TRIANGLES, 0, triangleVertexPositionBuffer.numItems);
         mvPopMatrix();
+
 
 
         mat4.translate(mvMatrix, [3.0, 0.0, 0.0]);

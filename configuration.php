@@ -32,10 +32,13 @@
 <?php include "device_list.php";  ?>
 
 <script>
+	var all_devices        = <?php echo json_encode( $deviceInfo );  	?>;
 	var drive_five_boards  = <?php echo json_encode( $drive_fives );  	?>;
 	var load_cell_boards   = <?php echo json_encode( $load_cells  );	?>;
 	var ani_eyes_boards	   = <?php echo json_encode( $ani_eyes);  		?>;
 	var io_expander_boards = <?php echo json_encode( $io_expanders);  	?>; 
+	var InputVars = <?php echo json_encode( $InputVars);  	?>; 
+
 </script>
 
 

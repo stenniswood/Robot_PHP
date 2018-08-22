@@ -1,6 +1,9 @@
 <?pyp
 ?>
 
+<html>
+<head></head>
+<body>
 <script>
 /*****************************************************************************
 Name		:   INV_Calc_BaseRotation()
@@ -139,3 +142,4 @@ function INV_XYZ_To_Angles(struct stFull_XYZ_Coordinate* XYZ,
 
 
 </script>
+</bodyy>

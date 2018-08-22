@@ -15,8 +15,8 @@
 		if ($filedescriptor==FALSE) {
 			echo "Cannot open device: ".$dev;
 			return;
-		} else 
-			echo "OPENED DEVICE:".$path." fd=".$filedescriptor."<br>";
+		} 
+		//else echo "OPENED DEVICE:".$path." fd=".$filedescriptor."<br>";
 			
 		stream_set_blocking($filedescriptor, true);
 		return $filedescriptor;
@@ -29,7 +29,7 @@
 	function USBDeviceSend($fd, $data) 
 	{		
 			$result = fwrite( $fd, $data."\r\n" );
-			echo "fd=".$fd."    Bytes sent=".$result."    ".$data."<br>";
+			//echo "fd=".$fd."    Bytes sent=".$result."    ".$data."<br>";
 
 			// Some devices echo back our command, others don't!
 			$timeout = 0;
@@ -42,18 +42,19 @@
 					$data = fgets($fd, 4096);					
 					if ($data)
 					{   
-						echo "   fgets:";   var_dump($data); echo "  ";
+						//echo "   fgets:";   var_dump($data); echo "  ";
 						$full_data .= $data;
 						$i=0;		// restart
 						$done = feof($fd);
-						var_dump($done);
-						echo "<br>";
+						//var_dump($done);
+						//echo "<br>";
 						//$data = false;
 					};
 					$i++;
 				} while (($data==false) && ($i<5000));
 
-			echo "Fulldata=";	var_dump($full_data);  echo "<br>";	
+			//echo "Fulldata=";	var_dump($full_data);  echo "<br>";	
+			echo $full_data;
 			if ($full_data==false)	return "no response";
 
 			return $full_data;  

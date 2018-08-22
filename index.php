@@ -74,9 +74,11 @@ tr:hover {background-color:#f5f5f5;}
     padding: 6px 12px;
     border: 1px solid #ccc;
     border-top: none;
-    background-color: #3191C1;
+    background-color: #4191C1;
 }
-
+.graphs{
+    background-color: #4191C1;
+}
 </style>
 <title>BK Robot</title>
 <?php include "sim_3d_head.php" ?>

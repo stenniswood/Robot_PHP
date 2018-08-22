@@ -164,7 +164,7 @@
 				if ($result[1]==NULL)
 					return "invalid response";
 				else
-					return $result[1];  
+					return trim($result[1]);  
 			}
 			return "na.";
 	};
@@ -230,8 +230,7 @@ EOT;
 	$drive_fives = GetAllofAKind( "DriveFive");
 	$load_cells  = GetAllofAKind( "Load cell");
 	$ani_eyes    = GetAllofAKind( "Ani-eyes");
-	$io_expanders  = GetAllofAKind( "IO Expander");
-	
+	$io_expanders  = GetAllofAKind( "IO Expander");	
 	
 
 	

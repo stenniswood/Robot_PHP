@@ -23,11 +23,12 @@
 	//init_junk_sequence();
 	//save_sequence("MY_SEQEUENCES.SEQ");	
 	load_sequence("MY_SEQUENCES.SEQ");	
+	load_variables("MY_INPUTS.VARS");	
 ?>
 
 <script>
 	var selected_row = 1;
-	var mmicro_seq = <?php echo json_encode($MicroSeq);  ?>
+	//.var mmicro_seq = <?php echo json_encode($MicroSeq);  ?>
 	
 	function move_indicator( old_row, new_row )
 	{
@@ -51,13 +52,17 @@
 	function handle_table_row_click(event) 
 	{
 		var table = document.getElementById('sequence');
+		var new_selected_row = event.target.parentElement.rowIndex;
+		if (new_selected_row>= (table.rows.length-1))
+			return;			// Don't do anything if they clicked the last row.
+			
 		// Remove the icons from previous placement:
 		if (selected_row) {
 			table.rows[selected_row].childNodes[0].innerHTML = "";
 			table.rows[selected_row].childNodes[7].innerHTML = "";
 		}
 		// Determine new active row:
-		selected_row = event.target.parentElement.rowIndex;
+
 		
 		if (selected_row) {
 			// Add icons: ->, ! icon and a X for "perform now" and "delete"
@@ -68,7 +73,7 @@
 	}
 </script>
 
-<fieldset background="icons/real_sequencing.png"  >
+<fieldset >
   <legend>Micro Sequence:</legend>
 	<table id="sequence" onclick="handle_table_row_click(event)" border="1" opacity="0.4" ><tr>
 	<th width="10"  align="left"></th>
@@ -77,7 +82,8 @@
 	<th width="100" align="left">Type</th>
 	<th width="100" align="left">Model</th>	
 	<th width="300" align="left">Action</th>
-	<th width="200" align="left">Device</th>
+	<th width="150" align="left">Board Name</th>
+	<th width="125" align="left">Device</th>
 	<th width="200" align="left">Buttons</th>	</tr>	
 	<?php
 		$i=0;
@@ -95,6 +101,7 @@
 			echo "<td>".$row["type"]."</td>";
 			echo "<td>".$row["model"]."</td>";
 			echo "<td ondblclick='handle_on_change_action(event)'>".$row["action"]."</td>";
+			echo "<td>".$row["name"]."</td>";
 			echo "<td>".$row["device"]."</td>";
 			echo "<td></td>";
 			echo "</tr>";
@@ -121,6 +128,20 @@
 
 <td>
 <span>
+<p  id="input_controls" >
+	Variable Name: 
+	<input id="variable_name" ></input><br>
+	Reply Index:
+	<input id="reply_index" ></input><br>
+	<select id="signal_type">
+	<option value="1">Periodic</option>
+	<option value="2">User Sequenced</option>
+	<option value="3">Triggered</option>
+	</select>
+	<input id="period_ms"></input><br>
+	Eliciting Cmd:	
+</p>
+
 <select id="drive_five_cmds" onchange="cmd_change('Drive Five')" selected="1" >
 	<option value="1" selected>PWM</option>
 	<option value="2" >PID</option>	
@@ -199,6 +220,7 @@
 	<option value="6" >if (x==false)</option>		
 </select>
 
+
 <p id="parameter">
 Parameters:
 <input id="parameter_text"></input><br>
@@ -206,12 +228,6 @@ Help:<p id="context_help"></p><br>
 <p id="parameter_help"></p>
 </p>
 
-<p  id="input_controls" >
-	Variable Name: 
-	<input id="variable_name" ></input><br>
-	Reply Index:
-	<input id="reply_index" ></input><br>
-</p>
 
 </span></td>
 
@@ -244,16 +260,23 @@ Help:<p id="context_help"></p><br>
 <button name="Stop">
 <img src="icons/stop.png" onclick="stop_sequence()" style="width:25px;height:25px;">
 </button>
-<button name="Save" onclick="save_ajax('MY_SEQUENCES.SEQ')">
+
+<button name="Save" onclick="save_sequence_ajax('MY_SEQUENCES.SEQ'); save_inputvars_ajax('MY_INPUTS.VARS')">
 <img src="icons/save.png"  style="width:25px;height:25px;">
 </button>
 Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
+
+<button name="startReads" onclick="start_periodic_reads()">Start Input Reads</button>
+<button name="stopReads" onclick="stop_periodic_reads()">Stop Input Reads</button>
 
 </fieldset>
 
 
 
 <script>
+	var b_startRead = document.getElementById( "startReads" );
+	var b_readNow   = document.getElementById( "ReadNow"    );
+		
 	var step_rate_ctrl = document.getElementById( "step_rate" );		
 
 	var seq_table = document.getElementById  ( "sequence"    );
@@ -271,13 +294,19 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 
 	var param_p 	= document.getElementById("parameter" );
 	var param 		= document.getElementById("parameter_text" );
-	var micro_seq   = [];
+//var micro_seq   = [];
 	
 	var inputs 		= document.getElementById("input_controls");
+	var signal_sel 	= document.getElementById("signal_type");
+	
 	var help_ctrls  = document.getElementById("context_help");	
 	var help_param_ctrl  = document.getElementById("parameter_help");		
 	
-	
+	var var_nam      = document.getElementById( "variable_name" );
+	var response_idx = document.getElementById( "reply_index"   );
+	var period_inp   = document.getElementById( "period_ms"     );
+
+
 	inputs.style.display = "none";	
 	bm_sel.style.display = "none";
 	hide_all_cmds();
@@ -306,7 +335,8 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		for (i=0; i<num; i++)
 		{
 			option = document.createElement("option");
-			option.text = board_list[i]['path'];			// .$opt['name']
+			option.text = board_list[i]['name'];
+			//option.text += board_list[i]['path'];			// .$opt['name']
 			bs_sel.add(option);
 		}
 	}
@@ -337,7 +367,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		// Append any text input parameters :
 		cmd_text += " ";
 		cmd_text += param.value;
-		return cmd_text;
+		return cmd_text.trim();
 	}
 	function perform_now()
 	{
@@ -358,7 +388,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		new_entry["model"]  = "";
 		new_entry["action"] = "delay "+ step_rate_ctrl.value;
 		new_entry["device"] = "";
-		micro_seq.push( new_entry );
+		//micro_seq.push( new_entry );
 
 		var row = seq_table.insertRow(num_rows-1);
 		var cell0 = row.insertCell(0);
@@ -374,8 +404,9 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		cell4.innerHTML = new_entry["model"];
 		cell5.innerHTML = new_entry["action"];
 		cell6.innerHTML = new_entry["device"];	
-		play_sound_ajax("junk");	
+		play_sound_ajax("stock1");	
 	}
+	
 	
 	function handle_add() 
 	{		
@@ -400,11 +431,30 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 			if (bs_sel.selectedOptions.length)
 				new_entry["device"] = bs_sel.selectedOptions[0].innerHTML;
 			break;
-		case "Input": 	// Input		
-			new_entry["model"]  = bm_sel.selectedOptions[0].innerHTML;		
-			new_entry["action"] = "VARIABLE = 100.00";
+		case "Input": 	// Input	
+			new_entry["board_name"] = bs_sel.selectedOptions[0].innerHTML.trim();
+			new_entry["model"]  	= bm_sel.selectedOptions[0].innerHTML;		
+			new_entry["name"]   	= var_nam.value;
+			new_entry["response_index"]  = response_idx.value;
+			new_entry["eliciting_cmd"]   = extract_full_command_from_controls( bm_sel.selectedOptions[0].innerHTML );;
+			new_entry["signal_type"]     = signal_sel.selectedOptions[0].innerHTML +" "+ period_inp.value;			
 			if (bs_sel.selectedOptions.length)
-				new_entry["device"] = bs_sel.selectedOptions[0].innerHTML;
+			{
+				var devIndex=-1;
+				var i;
+				for (i=0; i<all_devices.length; i++)
+				{
+					if (all_devices[i]["name"]==new_entry["board_name"])
+						devIndex = i;
+				} 
+				if (i>=0)
+					new_entry["device"]  = all_devices[devIndex]['path'];
+				else 
+					new_entry["device"] = "NotFound!";
+			}
+
+			add_user_variable( new_entry );
+			return;		// Don't add to the sequencer table! 
 			break;
 		case "Directive":		// Directive
 			
@@ -421,7 +471,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		default:
 			break;
 		}
-		micro_seq.push( new_entry );
+		//micro_seq.push( new_entry );
 		
 		var row = seq_table.insertRow(num_rows-1);
 		var cell0 = row.insertCell(0);
@@ -438,7 +488,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		cell5.innerHTML = new_entry["action"];
 		cell6.innerHTML = new_entry["device"];		
 		
-		play_sound_ajax("junk");
+		play_sound_ajax("stock1");
 	}
 	function clear_parameter()
 	{
@@ -785,7 +835,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 	}
 	
 
-function save_ajax(filename) 
+function save_sequence_ajax(filename) 
 {
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
@@ -799,10 +849,10 @@ function save_ajax(filename)
 	payload = "Filename="+filename;
 	payload += "&operation=Save";
 
-	// Extract the entire Table : 	
+	// Extract the entire Sequence Table : 	
 	var sl;
 	var num_rows = seq_table.rows.length;	
-	micro_seq = [];
+	var micro_seq = [];
 	var i;
 	for (i=1; i<(num_rows-1); i++)
 	{
@@ -812,6 +862,40 @@ function save_ajax(filename)
 				
 	var j_str = JSON.stringify(micro_seq);
 	payload += "&MicroSeqTable="+j_str;
+
+	xhttp.open("POST", "sequencer_load_save.php", true);		 
+	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	//xhttp.setRequestHeader("Connection", "close");  
+	//xhttp.setRequestHeader("Content-length", payload.length);
+	xhttp.send(payload);	
+}
+function save_inputvars_ajax(filename) 
+{
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+		  //document.getElementById("result_text").innerHTML = this.responseText;
+		  alert("Sequence Saved!"+this.responseText);
+		}
+	};  
+	
+	var payload;
+	payload = "Filename="+filename;
+	payload += "&operation=SaveInputs";
+
+	// Extract the entire InputVar Table : 	
+	var sl;
+	var num_rows  = var_table.rows.length;
+	var inputvars = [];
+	var i;
+	for (i=1; i<(num_rows); i++)
+	{
+		sl = extract_vartable_row(i);
+		inputvars.push(sl);
+	}
+			
+	var j_str = JSON.stringify(inputvars);
+	payload += "&InputVars="+j_str;
 
 	xhttp.open("POST", "sequencer_load_save.php", true);		 
 	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -860,7 +944,7 @@ function play_sound_ajax(filename)
 </script>
 
 <?php include "graph_inputs.php"; ?>
-
+<?php include "variable_table.php"; ?>
 
 </div>
 
