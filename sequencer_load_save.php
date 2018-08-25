@@ -41,6 +41,7 @@
 		{
 			$line  = $step["label"] .",";
 			$line .= $step["type"] .",";
+			$line .= $step["board_name"] .",";			
 			$line .= $step["model"] .",";
 			$line .= $step["action"] .",";
 			$line .= $step["device"].",";

@@ -55,20 +55,20 @@
 		var new_selected_row = event.target.parentElement.rowIndex;
 		if (new_selected_row>= (table.rows.length-1))
 			return;			// Don't do anything if they clicked the last row.
-			
+		
 		// Remove the icons from previous placement:
 		if (selected_row) {
 			table.rows[selected_row].childNodes[0].innerHTML = "";
-			table.rows[selected_row].childNodes[7].innerHTML = "";
+			table.rows[selected_row].childNodes[8].innerHTML = "";
 		}
 		// Determine new active row:
-
-		
-		if (selected_row) {
+		if (new_selected_row) {		
 			// Add icons: ->, ! icon and a X for "perform now" and "delete"
-			table.rows[selected_row].childNodes[0].innerHTML = "<img src='icons/RightRedArrow.png' alt='->' style='width:20px;height:15px;' />";
-			table.rows[selected_row].childNodes[7].innerHTML = 
-			"<img src='explanation_mark.png' alt='X' onclick='perform_now()' style='width:25px;height:25px;'><img src='redcross.png' alt='X' onclick='handle_delete()' style='width:25px;height:25px;'>";
+			table.rows[new_selected_row].childNodes[0].innerHTML = "<img src='icons/RightRedArrow.png' alt='->' style='width:20px;height:15px;' />";
+			table.rows[new_selected_row].childNodes[8].innerHTML = 
+			"<img src='icons/explanation_mark.png' alt='X' onclick='perform_now()' style='width:25px;height:25px;'> \
+			<img src='icons/redcross.png' alt='X' onclick='handle_delete()' style='width:25px;height:25px;'>";
+			selected_row = new_selected_row;
 		}
 	}
 </script>
@@ -101,7 +101,7 @@
 			echo "<td>".$row["type"]."</td>";
 			echo "<td>".$row["model"]."</td>";
 			echo "<td ondblclick='handle_on_change_action(event)'>".$row["action"]."</td>";
-			echo "<td>".$row["name"]."</td>";
+			echo "<td>".$row["board_name"]."</td>";
 			echo "<td>".$row["device"]."</td>";
 			echo "<td></td>";
 			echo "</tr>";
@@ -111,7 +111,6 @@
 <tr><td></td><td><?php $i+1; ?></td><td></td>
 <td><select id="select_type" onchange="configure_type(this.value)" >
 	<option value="1" selected>Command</option>
-	<option value="2" selected>Input</option>		
 	<option value="3" selected>Directive</option>	
 	<option value="4" selected>System</option>		
 </select>
@@ -128,20 +127,6 @@
 
 <td>
 <span>
-<p  id="input_controls" >
-	Variable Name: 
-	<input id="variable_name" ></input><br>
-	Reply Index:
-	<input id="reply_index" ></input><br>
-	<select id="signal_type">
-	<option value="1">Periodic</option>
-	<option value="2">User Sequenced</option>
-	<option value="3">Triggered</option>
-	</select>
-	<input id="period_ms"></input><br>
-	Eliciting Cmd:	
-</p>
-
 <select id="drive_five_cmds" onchange="cmd_change('Drive Five')" selected="1" >
 	<option value="1" selected>PWM</option>
 	<option value="2" >PID</option>	
@@ -201,31 +186,32 @@
 	<option value="0" selected>play</option>
 	<option value="1" >exec</option>	
 	<option value="2" >tts</option>	
-	<option value="3" >arm xyz</option>	
-	<option value="4" >arm gripper</option>		
-	<option value="5" >arm wrist</option>
-	<option value="6" >arm raise</option>	
-	<option value="7" >arm lower</option>		
-	<option value="8" >arm rotate</option>			
+	<option value="3" >arm_xyz</option>	
+	<option value="4" >arm_gripper</option>		
+	<option value="5" >arm_wrist</option>
+	<option value="6" >arm_raise</option>	
+	<option value="7" >arm_lower</option>		
+	<option value="8" >arm_rotate</option>			
 </select>	
 
 <select id="new_directive" onchange="cmd_change('Directive')" selected="1">
 	<option value="0" >(please select:)</option>
 	<option value="1" selected>delay</option>
-	<option value="2" >wait for</option>	
 	<option value="3" >goto</option>		
-	<option value="4" >wait until (n>X)</option>	
-	<option value="5" >wait until (n\< X)</option>
-	<option value="5" >if (x==true)</option>
-	<option value="6" >if (x==false)</option>		
+	<option value="2" >wait_for</option>	
+	<option value="4" >wait_until_(n>X)</option>	
+	<option value="5" >wait_until_(n\< X)</option>
+	<option value="6" >range</option>
+	<option value="7" >if_less_than</option>
+	<option value="8" >if_greater_than</option>		
+	<option value="9" >if_equal</option>			
 </select>
-
 
 <p id="parameter">
 Parameters:
 <input id="parameter_text"></input><br>
-Help:<p id="context_help"></p><br>
-<p id="parameter_help"></p>
+Help:<div id="context_help"></div><br>
+<div id="parameter_help"></div>
 </p>
 
 
@@ -296,18 +282,13 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 	var param 		= document.getElementById("parameter_text" );
 //var micro_seq   = [];
 	
-	var inputs 		= document.getElementById("input_controls");
-	var signal_sel 	= document.getElementById("signal_type");
 	
 	var help_ctrls  = document.getElementById("context_help");	
 	var help_param_ctrl  = document.getElementById("parameter_help");		
 	
-	var var_nam      = document.getElementById( "variable_name" );
-	var response_idx = document.getElementById( "reply_index"   );
-	var period_inp   = document.getElementById( "period_ms"     );
 
 
-	inputs.style.display = "none";	
+	//inputs.style.display = "none";	
 	bm_sel.style.display = "none";
 	hide_all_cmds();
 	init_help();
@@ -335,7 +316,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		for (i=0; i<num; i++)
 		{
 			option = document.createElement("option");
-			option.text = board_list[i]['name'];
+			option.text = board_list[i]['name'] +","+ board_list[i]['path'];
 			//option.text += board_list[i]['path'];			// .$opt['name']
 			bs_sel.add(option);
 		}
@@ -371,7 +352,13 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 	}
 	function perform_now()
 	{
+		var Model = bm_sel.selectedOptions[0].innerHTML;
+		var cmd   = extract_full_command_from_controls( Model );
 		
+		var board = bs_sel.selectedOptions[0].innerHTML;
+		var dev    = board.split(",");
+		
+		perform_command(Model,cmd,dev[1]);
 	}
 	function handle_delete() 
 	{		
@@ -397,13 +384,17 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		var cell3 = row.insertCell(3);
 		var cell4 = row.insertCell(4);
 		var cell5 = row.insertCell(5);						
-		var cell6 = row.insertCell(6);			
+		var cell6 = row.insertCell(6);	
+		var cell7 = row.insertCell(7);	
+		var cell8 = row.insertCell(8);	
 		cell1.innerHTML = new_entry["step"];
 		cell2.innerHTML = new_entry["label"];		
 		cell3.innerHTML = new_entry["type"];
 		cell4.innerHTML = new_entry["model"];
 		cell5.innerHTML = new_entry["action"];
-		cell6.innerHTML = new_entry["device"];	
+		cell6.innerHTML = new_entry["board_name"];	
+		cell7.innerHTML = new_entry["device"];	
+		cell8.innerHTML = "";
 		play_sound_ajax("stock1");	
 	}
 	
@@ -431,43 +422,16 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 			if (bs_sel.selectedOptions.length)
 				new_entry["device"] = bs_sel.selectedOptions[0].innerHTML;
 			break;
-		case "Input": 	// Input	
-			new_entry["board_name"] = bs_sel.selectedOptions[0].innerHTML.trim();
-			new_entry["model"]  	= bm_sel.selectedOptions[0].innerHTML;		
-			new_entry["name"]   	= var_nam.value;
-			new_entry["response_index"]  = response_idx.value;
-			new_entry["eliciting_cmd"]   = extract_full_command_from_controls( bm_sel.selectedOptions[0].innerHTML );;
-			new_entry["signal_type"]     = signal_sel.selectedOptions[0].innerHTML +" "+ period_inp.value;			
-			if (bs_sel.selectedOptions.length)
-			{
-				var devIndex=-1;
-				var i;
-				for (i=0; i<all_devices.length; i++)
-				{
-					if (all_devices[i]["name"]==new_entry["board_name"])
-						devIndex = i;
-				} 
-				if (i>=0)
-					new_entry["device"]  = all_devices[devIndex]['path'];
-				else 
-					new_entry["device"] = "NotFound!";
-			}
-
-			add_user_variable( new_entry );
-			return;		// Don't add to the sequencer table! 
-			break;
-		case "Directive":		// Directive
-			
+		case "Directive":		// Directive			
 			new_entry["action"] = nd_sel.selectedOptions[0].innerHTML;
 			new_entry["action"] += " " + param.value;
 			new_entry["device"] = "";
 			break;
-		case "System":		// System
+		case "System":			// System
 			new_entry["action"] = system_sel.selectedOptions[0].innerHTML;
 			new_entry["action"] += " " + param.value;
 			new_entry["device"] = "";
 			break;
-			
 		default:
 			break;
 		}
@@ -526,21 +490,20 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 				hide_all_cmds();
 				bm_sel.style.display = "inline";
 				bs_sel.style.display = "inline";
-				inputs.style.display = "none";
+				//style.display = "none";
 				param_p.style.display = "inline";
 				val = bm_sel[bm_sel.selectedIndex].value;
 				configure_model(val);								
 			break;
-		case "2":	// Input
+/*		case "2":	// Input
 				hide_all_cmds();
 				bm_sel.style.display = "inline";
 				bs_sel.style.display = "inline";
-				inputs.style.display = "inline";						
+				//inputs.style.display = "inline";						
 				param_p.style.display = "none";				
-			break;
+			break; */
 		case "3":	// Directive
 				hide_all_cmds();
-				inputs.style.display = "none";
 				bs_sel.style.display = "none";
 				bm_sel.style.display = "none";
 				nd_sel.style.display = "block";
@@ -548,7 +511,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 			break;
 		case "4":	// System
 				hide_all_cmds();
-				inputs.style.display = "none";
+				//inputs.style.display = "none";
 				bs_sel.style.display = "none";
 				bm_sel.style.display = "none";
 				param_p.style.display = "inline";				
@@ -611,18 +574,6 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 	var active_row = 0;
 	var NaturalStepSpeed = 100;		// 100ms
 
-	function perform_command(model, action)
-	{
-		// Maybe don't need this switch.  Just pass the text to the specified board filedescriptor.
-		switch(model)
-		{
-		case "Drive Five":		break;		
-		case "Ani-Eyes"	:		break;		
-		case "Load-cell":		break;		
-		case "IO Expander":		break;	
-		default: break;							
-		}
-	}
 	/* Returns a row index */
 	function find_label(text)
 	{
@@ -651,7 +602,6 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		return text;
 	}
 	
-
 	function raw_text_again(event)
 	{
 		if (event.key === 'Enter') {
@@ -705,16 +655,6 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 	}
 	function perform_input(action)
 	{
-			var words = action.split( " ");			
-			switch(words[0])
-			{
-			case "goto":	active_row = words[1];
-					break;
-			case "delay":	sleep(words[1]);
-					break;
-			default:
-					break;				
-			}
 	}
 	function perform_directive(action)
 	{
@@ -722,6 +662,12 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		var line_num=-1;
 		var words = action.split(" ");
 		var delay;
+		var src_min=0; var src_max=100;
+		var dest_min=0; var dest_max=100;
+		words.forEach( (word, index) => {
+			words[index] = word.trim();
+		});
+		
 		switch(words[0])
 		{
 		case "goto":	search_label = words[1];
@@ -737,6 +683,86 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 				play_back_paused = true;
 				setTimeout( resume_playback, delay );
 				break;
+		case "range":	// Maps input value to new range.  Can be inverse proportion.
+				var_name = words[0].trim("$");
+				var iv_index = find_input_variable( var_name );
+				var value = InputVars[iv_index]['latest_value'];
+				src_min = words[1];		src_max  = words[2];
+				dest_min = words[3];	dest_max = words[4];
+				var range_src  = src_max - src_min;
+				var range_dest = dest_max- dest_min;
+				// x is y as z is to w
+				//(value - src_min)/range_src = (dest_val-dest_min)/range_dest;
+				dest_val = range_dest*(value - src_min)/range_src+dest_min;
+				var new_entry = {};
+				new_entry["board_name"] = "n.a. internal";
+				new_entry["model"]  	= "n.a. internal";		
+				new_entry["name"]   	= "Mapped_"+var_name;
+				new_entry["response_index"]  = "n.a. internal";
+				new_entry["eliciting_cmd"]   = "n.a. internal";
+				new_entry["signal_type"]     = "internal variable";
+				add_user_variable( new_entry );
+				break;
+		case "if_less_than":	// Maps input value to new range.  Can be inverse proportion.
+				var is_0_var = (words[0][0]=='$');
+				var is_1_var = (words[1][0]=='$');
+				var iv_0_index=-1;
+				var iv_1_index=-1;
+				var value0,value1;
+				if (is_0_var) {
+					iv_0_index = find_input_variable( words[0].trim("$") );
+				 	value0 = InputVars[iv_0_index]['latest_value'];
+				} else value0 = words[0];
+				if (is_1_var) {
+					iv_1_index = find_input_variable( words[1].trim("$") );
+				 	value1 = InputVars[iv_1_index]['latest_value'];
+				} else value1 = words[1];				 
+				if (value0 < value1)
+				{
+					line_num = find_label(search_label);
+					active_row = line_num-1;			// Put 1 above line, because of pos increment operator.
+				}
+				break;
+		case "if_greater_than":	// Maps input value to new range.  Can be inverse proportion.
+				var is_0_var = (words[0][0]=='$');
+				var is_1_var = (words[1][0]=='$');
+				var iv_0_index=-1;
+				var iv_1_index=-1;
+				var value0,value1;
+				if (is_0_var) {
+					iv_0_index = find_input_variable( words[0].trim("$") );
+				 	value0 = InputVars[iv_0_index]['latest_value'];
+				} else value0 = words[0];
+				if (is_1_var) {
+					iv_1_index = find_input_variable( words[1].trim("$") );
+				 	value1 = InputVars[iv_1_index]['latest_value'];
+				} else value1 = words[1];				 
+				if (value0 > value1)
+				{
+					line_num = find_label(search_label);
+					active_row = line_num-1;			// Put 1 above line, because of pos increment operator.
+				}
+				break;
+		case "if_equal":		// Maps input value to new range.  Can be inverse proportion.
+				var is_0_var = (words[0][0]=='$');
+				var is_1_var = (words[1][0]=='$');
+				var iv_0_index=-1;
+				var iv_1_index=-1;
+				var value0,value1;
+				if (is_0_var) {
+					iv_0_index = find_input_variable( words[0].trim("$") );
+				 	value0 = InputVars[iv_0_index]['latest_value'];
+				} else value0 = words[0];
+				if (is_1_var) {
+					iv_1_index = find_input_variable( words[1].trim("$") );
+				 	value1 = InputVars[iv_1_index]['latest_value'];
+				} else value1 = words[1];				 
+				if (value0 == value1)
+				{
+					line_num = find_label(search_label);
+					active_row = line_num-1;			// Put 1 above line, because of pos increment operator.
+				}
+				break;
 		
 		default:
 				break;				
@@ -749,6 +775,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 	
 	function perform_system(action)
 	{
+		var servo_angles={};
 		var filename;
 		var words = action.split( " " );
 		switch(words[0])
@@ -760,16 +787,20 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 				break;
 		case "tts"			:
 				break;
-		case "arm xyz"		:	
+		case "arm_xyz"		:	var xyz = {};
+		
+				xyz['x']=words[1]; xyz['y']=words[2]; xyz['z']=words[3];				
+				INV_XYZ_To_Angles( xyz, servo_angles );
+				set_servo_angles_rad( servo_angles['s1'], servo_angles['s2'], servo_angles['s3'], servo_angles['s4'] );
 				break;
-		case "arm gripper"	:				break;
-		case "arm wrist"	:				break;
-		case "arm raise"	:				break;
-		case "arm lower"	:				break;		
-		case "arm rotate"	:				break;			
-		case "leg xyz"		:	
+		case "arm_gripper"	:				break;
+		case "arm_wrist"	:				break;
+		case "arm_raise"	:				break;
+		case "arm_lower"	:				break;		
+		case "arm_rotate"	:				break;			
+		case "leg_xyz"		:	
 				break;
-		case "bend foot"	:	
+		case "bend_foot"	:	
 				break;
 
 		default:
@@ -786,8 +817,6 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 			switch(Type)
 			{
 			case "Command"	:	perform_command(model,action,device);
-					break;
-			case "Input"	:	perform_input();
 					break;
 			case "Directive":	perform_directive(action);
 					break;
@@ -888,7 +917,7 @@ function save_inputvars_ajax(filename)
 	var num_rows  = var_table.rows.length;
 	var inputvars = [];
 	var i;
-	for (i=1; i<(num_rows); i++)
+	for (i=1; i<(num_rows-1); i++)
 	{
 		sl = extract_vartable_row(i);
 		inputvars.push(sl);

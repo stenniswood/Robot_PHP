@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>My first three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+
+		</style>
+	</head>
+	<body>
+
+		<script src="js/three.js"></script>
+		<script>
+			// Our Javascript will go here.
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 120, window.innerWidth / window.innerHeight, 0.1, 5000 );
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );			
+			
+			// CUBE:
+//			var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+			var geometry  = new THREE.CylinderGeometry( 5, 5, 20, 32 );
+			var geometry2 = new THREE.CylinderGeometry( 5, 5, 20, 32 );			
+			var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+			var cube = new THREE.Mesh( geometry, material );
+			var cube2 = new THREE.Mesh( geometry, material );			
+			scene.add( cube );
+			scene.add( cube );
+			var textMesh1;
+
+				var dirLight = new THREE.DirectionalLight( 0xffffff, 0.125 );
+				dirLight.position.set( 0, 0, 40 ).normalize();
+				scene.add( dirLight );
+				
+				var pointLight = new THREE.PointLight( 0xffffff, 1.5 );
+				pointLight.position.set( 0, 100, 90 );
+				scene.add( pointLight );
+				
+			camera.position.z = 30;
+			
+			function animate() {
+				requestAnimationFrame( animate );
+				cube.rotation.x += 0.01;
+				cube.rotation.y += 0.01;	
+				textMesh1.rotation.x += 0.01;
+				//textMesh1.rotation.y += 0.01;
+				renderer.render( scene, camera );
+			}
+
+	var loader = new THREE.FontLoader();
+	loader.load( 'js/fonts/helvetiker_bold.typeface.json', function ( font ) {
+		var textGeo = new THREE.TextGeometry( 'Beyond Kinetics.js!', {
+			font: font,
+			size: 10,
+			height: 5,
+			curveSegments: 12,
+			bevelEnabled: true,
+			bevelThickness: 2,
+			bevelSize: 1,
+			bevelSegments: 5
+		} );
+		var materials = [
+						new THREE.MeshPhongMaterial( { color: 0x6fffff, flatShading: true } ), // front
+						new THREE.MeshPhongMaterial( { color: 0xffff3f } ) // side
+					];
+				
+		var group = new THREE.Group();
+		group.position.y = 4;
+
+		textGeo.computeBoundingBox();
+		textGeo.computeVertexNormals();	
+		var centerOffset = -0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
+		
+		textGeo = new THREE.BufferGeometry().fromGeometry( textGeo );
+		textMesh1 = new THREE.Mesh( textGeo, materials );
+		textMesh1.position.x = centerOffset;
+		textMesh1.position.y = 0;
+		textMesh1.position.z = 0;
+		textMesh1.rotation.x = 0;
+		textMesh1.rotation.y = Math.PI * 2;
+		group.add( textMesh1 );
+		scene.add( group );	
+		animate();						
+	} );
+		
+			
+			
+			
+			
+		</script>
+	</body>
+</html>

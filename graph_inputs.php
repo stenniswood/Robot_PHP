@@ -14,14 +14,6 @@ var newColorSet = [
                 'rgba(255, 159, 64, 0.2)'
             ];
 
-/*var newDataset = {
-				label: 'Load cell 1',
-				backgroundColor: newColorSet,
-				borderColor: newColorSet,
-				data: [],
-				fill: false
-			};
-*/
 //	for (var index = 0; index < 10; ++index) {
 //		newDataset.data.push(index*4);
 //	}
@@ -47,16 +39,19 @@ var myChart = new Chart(ctx, config);
 
 function getDatasetIndex( setName )
 {
+	var retval=-1;
 	config.data.datasets.forEach( (variable,index) => {
-		if (variable.label=="setName")
-			return index;
+		if (variable.label==setName)
+			retval = index;
 	});
-	
+	return retval;
 }
 function hide_on_graph(varindex)
 {
-	var ds_index = getDatasetIndex( InputVars[varindex]['name'] );
-	
+	var compare_str = "Dataset "+InputVars[varindex]['name'];
+	var ds_index = getDatasetIndex( compare_str );
+	if (ds_index==-1)
+		return;
 	config.data.datasets.splice(ds_index, 1);
 	window.myChart.update();
 }

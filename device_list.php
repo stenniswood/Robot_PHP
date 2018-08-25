@@ -80,7 +80,7 @@
 				}
 				$i++;
 				usleep(10000);
-			} while ($new_data ||  ($i<50) );
+			} while ($new_data ||  ($i<10) );
 
 			$full_data = trim($full_data, ">");
 			//echo "<br>FullData=";
@@ -149,9 +149,9 @@
 				}
 				$i++;
 				usleep(10000);
-			} while ($new_data ||  ($i<100) );
+			} while ($new_data ||  ($i<10) );
 
-			$full_data = trim($full_data, ">");
+			$full_data = trim($full_data, ">\r ");
 			//echo "<br>FullData=";
 			//var_dump($full_data);
 			

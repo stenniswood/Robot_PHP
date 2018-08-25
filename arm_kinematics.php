@@ -1,10 +1,11 @@
-<?pyp
-?>
 
-<html>
-<head></head>
-<body>
+
 <script>
+var LENGTH_SHOULDER =	4.75;
+var LENGTH_ELBOW	=	4.75;
+var LENGTH_WRIST	=	6.0;
+var BASE_HEIGHT		= 	2.5;
+
 /*****************************************************************************
 Name		:   INV_Calc_BaseRotation()
 Parameters	:	X,Y given in inches
@@ -13,10 +14,10 @@ Description	:   This function performs the inverse calculations for finding
 				the base rotation which will position the griper towards the
 				specified position.				
 *****************************************************************************/
-function INV_Calc_BaseRotation(float mX, float mY )
+function INV_Calc_BaseRotation( mX, mY )
 {
 	// atan2 takes care of the quadrant issue - good for 0 to 180 degrees.
-	return atan2(mY,mX);
+	return Math.atan2(mY,mX);
 }
 
 /*****************************************************************************
@@ -27,9 +28,9 @@ Description	:   This function performs the inverse calculations for finding
 				the servo motor positions which will position the griper at
 				the specified X,Y,Z position.
 *****************************************************************************/
-function INV_Calc_RadiusProjection(float mX, float mY)
+function INV_Calc_RadiusProjection( mX, mY)
 {
-	return sqrt(mX*mX + mY*mY);
+	return Math.sqrt(mX*mX + mY*mY);
 }
 
 /*****************************************************************************
@@ -38,9 +39,21 @@ Parameters	:	mZ the Z height in inches
 Return		:   mZ - origin is now even with the top of the base servo.
 Description	:   Subtracts the stored height of the base.
 *****************************************************************************/
-function INV_Subtract_BaseHeight( float* mZ )
+function INV_Subtract_BaseHeight( mZ )
 {
-	*mZ -= BASE_HEIGHT;
+	return (mZ - BASE_HEIGHT);
+}
+
+/**********************************************************************************
+Name            :   CT_Convert_FlipDirection()
+Parameters      :       mRadians
+Returns         :   Degrees
+Description     :   Switch between ClockWise and CounterClockWise
+************************************************************************************/
+function CT_Convert_FlipDirection( mRadians)
+{
+        var Angle = Math.PI - mRadians;
+        return Angle;
 }
 
 /*****************************************************************************
@@ -51,23 +64,22 @@ Description	:   This function performs the inverse calculations for finding
 				the servo motor positions which will position the griper at
 				the specified X,Y,Z position.
 *****************************************************************************/
-function INV_Calc_ShoulderAndElbow_Angles(float mRadius, float mHeight, 
-			struct stServoAnglesSet* mResult )
+function INV_Calc_ShoulderAndElbow_Angles( mRadius,  mHeight, mResult )
 {
-	float t1,t2,t3;
-	float Direct_SW_Angle1,Angle2;
-	float Numerator;
-	float Direct_SW_LineLength;
+	var t1,t2,t3;
+	var Direct_SW_Angle1,Angle2;
+	var Numerator;
+	var Direct_SW_LineLength;
 	
-	Direct_SW_LineLength = sqrt(mRadius*mRadius + mHeight*mHeight);		// Spherical Radius.
-	Direct_SW_Angle1     = atan2( mHeight, mRadius );						// Elevation angle
+	Direct_SW_LineLength = Math.sqrt(mRadius*mRadius + mHeight*mHeight);		// Spherical Radius.
+	Direct_SW_Angle1     = Math.atan2( mHeight, mRadius );						// Elevation angle
 
 	// Law of Cosines : 
 	t1 = (LENGTH_SHOULDER * LENGTH_SHOULDER);
 	t2 = (LENGTH_ELBOW * LENGTH_ELBOW);
 	t3 = (Direct_SW_LineLength * Direct_SW_LineLength);
-	float numerator = (t1-t2+t3);
-	float denominator = (2*LENGTH_SHOULDER*Direct_SW_LineLength);
+	var numerator = (t1-t2+t3);
+	var denominator = (2*LENGTH_SHOULDER*Direct_SW_LineLength);
 	
 	if (numerator>denominator)
 	{
@@ -76,16 +88,16 @@ function INV_Calc_ShoulderAndElbow_Angles(float mRadius, float mHeight,
 //	printf("Law of Cosines:\n  a=%6.3f\n  b=%6.3f\n  c=%6.3f\n", LENGTH_SHOULDER, LENGTH_ELBOW, Direct_SW_LineLength);
 //	printf("INV_Calc_ShoulderAndElbow_Angles:  Numerator=%6.3f;  Denom=%6.3f\n",(t1-t2+t3),
 //	  		(2*LENGTH_SHOULDER*Direct_SW_LineLength) );
-	  
-	Angle2 = acos( numerator / denominator );
+
+	Angle2 = Math.acos( numerator / denominator );
 
 	// Shoulder Angle : 
-	mResult->s2 = Direct_SW_Angle1 + Angle2;		// in radians
+	mResult['s2'] = Direct_SW_Angle1 + Angle2;		// in radians
 
 	// Elbow_Angle - Law of Cosines:
-	mResult->s3 = acos( (t1+t2-t3)/(2*LENGTH_SHOULDER*LENGTH_ELBOW) );
+	mResult['s3'] = Math.acos( (t1+t2-t3)/(2*LENGTH_SHOULDER*LENGTH_ELBOW) );
 	//printf("INV_Calc_ShoulderAndElbow_Angles:  Elbow Angle=%6.3f degs;\n", CT_Convert_Radians_to_Degrees(mResult->s3) );
-	mResult->s3 = - CT_Convert_FlipDirection(mResult->s3);
+	mResult['s3'] = - CT_Convert_FlipDirection( mResult['s3'] );
 }
 
 /*****************************************************************************
@@ -98,9 +110,9 @@ Description	:   The coordinate frame is on the table top.  So whatever Z above
 				table top is desired, we need to subtract the height that the 
 				base contributes.
 *****************************************************************************/
-void INV_Calc_WristAngle(float Approach_Angle, struct stServoAnglesSet* mAngleSet)
+function INV_Calc_WristAngle( Approach_Angle, mAngleSet)
 {
-	mAngleSet->s4 = (Approach_Angle - mAngleSet->s2 - mAngleSet->s3);
+	mAngleSet['s4'] = (Approach_Angle - mAngleSet['s2'] - mAngleSet['s3']);
 }
 
 
@@ -116,30 +128,29 @@ Description	:   This function performs the inverse calculations for finding
 				the specified X,Y,Z position.
 *****************************************************************************/
 //uint8_t INV_Find_XYZ(float mX, float mY, float mZ, float mApproach_degrees, struct stServoAnglesSet* mResult)
-function INV_XYZ_To_Angles(struct stFull_XYZ_Coordinate* XYZ, 
-						struct stServoAnglesSet* mResult)
+function INV_XYZ_To_Angles( XYZ, mServoAngles)
 {
 	// Begin Calculations:
-	float Radius;
-	mResult->s1	 = INV_Calc_BaseRotation( XYZ->X, XYZ->Y );
-	Radius 		 = INV_Calc_RadiusProjection( XYZ->X, XYZ->Y );
+	var Radius;
+	mServoAngles['s1']	= INV_Calc_BaseRotation    ( XYZ['y'], XYZ['z'] );
+	Radius 		 		= INV_Calc_RadiusProjection( XYZ['y'], XYZ['z'] );
 	
 	// Subtract the gripper segment to find the Wrist XYZ
 	//INV_Subtract_Gripper_RH( &(mResult->s1), &Radius, &(XYZ->Z), XYZ->Approach );			
 	//INV_Subtract_BaseHeight( &(XYZ->Z) );
 
-	INV_Calc_ShoulderAndElbow_Angles(Radius, XYZ->Z, mResult);
-	INV_Calc_WristAngle( XYZ->Approach, mResult );
+	INV_Calc_ShoulderAndElbow_Angles( Radius, XYZ['x'], mServoAngles );
+	INV_Calc_WristAngle				( XYZ['Approach'], mServoAngles  );
 
-	Feasibility = INV_Determine_Feasibility( Radius, XYZ->Z, mResult );
-	if (Feasibility > 0)			// if error
-		return FALSE;				// not reachable!
+	//Feasibility = INV_Determine_Feasibility( Radius, XYZ['Z'], mResult );
+	//if (Feasibility > 0)			// if error
+	//	return FALSE;				// not reachable!
 
 	// At this point, only *_Angles have been updated.  No intermediate servo positions
 	// or actual servos.  Call Actuate if this is desired.
-	return TRUE;		// Position is feasible
+	return 1;		// Position is feasible
 }
 
 
 </script>
-</bodyy>
+

@@ -115,8 +115,8 @@ function init_loadcell_help()
 
 	cmd_help["Load-cell"]	 = help_context;
 	param_help["Load-cell"] = help_params;
-
 }
+
 function init_IOexpander_help()
 {
 	var help_context = { };
@@ -147,7 +147,6 @@ function init_IOexpander_help()
 
 	cmd_help["IO Expander"]	  = help_context;
 	param_help["IO Expander"] = help_params;
-
 }
 
 function init_System_help()
@@ -185,7 +184,20 @@ function init_Directive_help()
 	var help_context = { };
 	var help_params  = { };		
 	help_context["delay"] 		= "Pause sequence for a while";
-	help_params["delay"] 			= "number of milliseconds";
+	help_params ["delay"] 			= "number of milliseconds";
+
+	help_context["goto"] 		= "Pause sequence for a while";
+	help_params ["goto"] 			= "number of milliseconds";
+
+	help_context["range"] 		= "Pause sequence for a while";
+	help_params ["range"] 			= "number of milliseconds";
+
+	help_context["if_less_than"] 	= "Pause sequence for a while";
+	help_params ["if_less_than"] 	= "number of milliseconds";
+
+	help_context["if_greater_than"] = "Pause sequence for a while";
+	help_params ["if_greater_than"] = "number of milliseconds";
+
 
 	cmd_help["Directive"]	= help_context;
 	param_help["Directive"] = help_params;
