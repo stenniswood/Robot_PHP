@@ -787,17 +787,29 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 				break;
 		case "tts"			:
 				break;
-		case "arm_xyz"		:	var xyz = {};
-		
+
+		case "l_arm_xyz"		:	var xyz = {};		
 				xyz['x']=words[1]; xyz['y']=words[2]; xyz['z']=words[3];				
 				INV_XYZ_To_Angles( xyz, servo_angles );
-				set_servo_angles_rad( servo_angles['s1'], servo_angles['s2'], servo_angles['s3'], servo_angles['s4'] );
+				set_servo_angles_rad( l_arm_meshes, arm_sizes, angle_set );
 				break;
-		case "arm_gripper"	:				break;
-		case "arm_wrist"	:				break;
-		case "arm_raise"	:				break;
-		case "arm_lower"	:				break;		
-		case "arm_rotate"	:				break;			
+		case "l_arm_gripper":				break;
+		case "l_arm_wrist"	:				break;
+		case "l_arm_raise"	:				break;
+		case "l_arm_lower"	:				break;		
+		case "l_arm_rotate"	:				break;			
+
+		case "r_arm_xyz"	:	var xyz = {};		
+				xyz['x']=words[1]; xyz['y']=words[2]; xyz['z']=words[3];
+				INV_XYZ_To_Angles( xyz, servo_angles );
+				set_servo_angles_rad( r_arm_meshes, arm_sizes, angle_set );
+				break;
+		case "r_arm_gripper":				break;
+		case "r_arm_wrist"	:				break;
+		case "r_arm_raise"	:				break;
+		case "r_arm_lower"	:				break;		
+		case "r_arm_rotate"	:				break;			
+		
 		case "leg_xyz"		:	
 				break;
 		case "bend_foot"	:	

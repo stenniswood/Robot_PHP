@@ -75,11 +75,13 @@ function INV_Calc_ShoulderAndElbow_Angles( mRadius,  mHeight, mResult )
 	Direct_SW_Angle1     = Math.atan2( mHeight, mRadius );						// Elevation angle
 
 	// Law of Cosines : 
-	t1 = (LENGTH_SHOULDER * LENGTH_SHOULDER);
-	t2 = (LENGTH_ELBOW * LENGTH_ELBOW);
-	t3 = (Direct_SW_LineLength * Direct_SW_LineLength);
-	var numerator = (t1-t2+t3);
-	var denominator = (2*LENGTH_SHOULDER*Direct_SW_LineLength);
+	t1 = (arm_sizes.upper_arm_length * arm_sizes.upper_arm_length);		// b
+	t2 = (arm_sizes.lower_arm_length * arm_sizes.lower_arm_length);		// a 
+	//t1 = (LENGTH_SHOULDER * LENGTH_SHOULDER);
+	//t2 = (LENGTH_ELBOW * LENGTH_ELBOW);
+	t3 = (Direct_SW_LineLength * Direct_SW_LineLength);					// c
+	var numerator = (-t2+t1+t3);
+	var denominator = (2*arm_sizes.upper_arm_length * Direct_SW_LineLength);
 	
 	if (numerator>denominator)
 	{
@@ -89,15 +91,13 @@ function INV_Calc_ShoulderAndElbow_Angles( mRadius,  mHeight, mResult )
 //	printf("INV_Calc_ShoulderAndElbow_Angles:  Numerator=%6.3f;  Denom=%6.3f\n",(t1-t2+t3),
 //	  		(2*LENGTH_SHOULDER*Direct_SW_LineLength) );
 
-	Angle2 = Math.acos( numerator / denominator );
-
 	// Shoulder Angle : 
-	mResult['s2'] = Direct_SW_Angle1 + Angle2;		// in radians
+	Angle2 = Math.acos( numerator / denominator );		// partial shoulder angle
+	mResult.Shoulder = Direct_SW_Angle1 + Angle2;		// in radians
 
 	// Elbow_Angle - Law of Cosines:
-	mResult['s3'] = Math.acos( (t1+t2-t3)/(2*LENGTH_SHOULDER*LENGTH_ELBOW) );
-	//printf("INV_Calc_ShoulderAndElbow_Angles:  Elbow Angle=%6.3f degs;\n", CT_Convert_Radians_to_Degrees(mResult->s3) );
-	mResult['s3'] = - CT_Convert_FlipDirection( mResult['s3'] );
+	mResult.Elbow = Math.acos( (t1+t2-t3)/(2*arm_sizes.upper_arm_length * arm_sizes.lower_arm_length) );
+	mResult.Elbow = - CT_Convert_FlipDirection( mResult.Elbow );
 }
 
 /*****************************************************************************
@@ -112,7 +112,7 @@ Description	:   The coordinate frame is on the table top.  So whatever Z above
 *****************************************************************************/
 function INV_Calc_WristAngle( Approach_Angle, mAngleSet)
 {
-	mAngleSet['s4'] = (Approach_Angle - mAngleSet['s2'] - mAngleSet['s3']);
+	mAngleSet.Wrist = (Approach_Angle - mAngleSet.Shoulder - mAngleSet.Elbow);
 }
 
 
@@ -132,7 +132,7 @@ function INV_XYZ_To_Angles( XYZ, mServoAngles)
 {
 	// Begin Calculations:
 	var Radius;
-	mServoAngles['s1']	= INV_Calc_BaseRotation    ( XYZ['y'], XYZ['z'] );
+	mServoAngles.Base	= INV_Calc_BaseRotation    ( XYZ['y'], XYZ['z'] );
 	Radius 		 		= INV_Calc_RadiusProjection( XYZ['y'], XYZ['z'] );
 	
 	// Subtract the gripper segment to find the Wrist XYZ
