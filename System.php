@@ -32,7 +32,8 @@ function get_boottime() {
 </tr><tr>
 <td>Software Version</td><td>1.0</td>
 </tr><tr>
-<td>Hardware Modules</td><td>(RPI3,PiCAMScan,PowerDistributor,DriveFive, PiZeroCam)</td>
+<td>Vision Partner RPI </td><td>IP address:
+<input id='vision_rpi_ipaddress' value='192.168.1.116'</td>
 </tr><tr>
 <td>Auxiliary Features:</td><td>(Audio, LaserPointDistances )</td> 
 </tr><tr>

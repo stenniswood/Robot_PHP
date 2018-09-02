@@ -1,7 +1,7 @@
 <div id="Sequencer" class="tabcontent">
 
 <fieldset>
-  <legend id="result_text" >Master Schedule:</legend>
+  <legend>Master Schedule:</legend>
 	<table id="schedule" border="1" ><tr>
 	<th width="150" >Date</th>	
 	<th width="150">Time</th>

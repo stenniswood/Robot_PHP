@@ -7,6 +7,15 @@
 <style>
 tr:hover {background-color:#f5f5f5;}
 
+table.nohover  tr:hover {background-color:#4191C1;}
+.addseq {
+    border: none;
+    background-color: #ef0;
+    padding: 8px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-block;
+}
 
 .btn {
     border: none;
@@ -100,7 +109,7 @@ tr:hover {background-color:#f5f5f5;}
   <button class="tablinks" onclick="openPage(event, 'Network')"			>Network</button>  
   <button class="tablinks"  onclick="openPage(event, 'Camera')"			>Camera</button>
   <button class="tablinks"  onclick="openPage(event, 'Map')"			>Map</button>
-  <button class="tablinks"  onclick="openPage(event, 'Sim3D')"			>3D Sim</button>  
+  <button class="tablinks"  onclick="openPage(event, 'Sim3D')"			>3D Sim</button>
 </div>
 
 <?php include "arm_kinematics.php" 	?>

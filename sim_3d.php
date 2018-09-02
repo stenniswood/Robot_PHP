@@ -1,4 +1,7 @@
 <div id="Sim3D" class="tabcontent">
+<script src="three.js/build/three.js"></script>
+<script src="three.js/examples/js/controls/OrbitControls.js"></script>
+<script src="three.js/examples/js/objects/ShadowMesh.js"></script>
 
 <style>
 .xyzslider {
@@ -25,19 +28,16 @@
 </style>
 
 <fieldset>
+
 XYZ:<input id='xyz'></input>
 <button id='move_left'  onclick="activate('left')" >Left</button>
 <button id='move_right' onclick="activate('right')">Right</button>
 
 Approach Angle:<input id='approach'></input><br>
-Left Gripper : <input id='l_gripper_position' type="range" min="0" max="100.00" value="0.5" class="xyzslider" style="width:250" >
-<span id="l_grip">Grip</span>
-  Right Gripper: <input id='r_gripper_position' type="range" min="0" max="100.00" value="0.5" class="xyzslider" style="width:250" >
-<span id="r_grip">Grip</span>
 </fieldset>
 
 <fieldset>
-
+<legend>Arm Moves</legend>
 <select id='path_catagory'></input>
 <option>Pick and Place</option>
 <option>Put hands together</option>
@@ -65,11 +65,14 @@ Left Gripper : <input id='l_gripper_position' type="range" min="0" max="100.00" 
 <button id='create_path'    onclick="create_path()">Create</button>
 <button id='do_path'        onclick="simulate_path()">Do Path</button>
 <button id='stop_path'      onclick="stop_simulate_path()">Stop Path</button>
-<button id='add_path_seq'   onclick="add_path_to_sequencer()">Add to Sequencer</button><br>
-<input id='repeat' type='checkbox' onclick='repeat_path=this.checked;'>Repeat</input>
-<table id="paths" >
+<input  id='repeat' type='checkbox' onclick='repeat_path=this.checked;'>Repeat</input>
+<button id='add_path_seq'  class='addseq' onclick="add_path_to_sequencer()">Add to Sequencer</button><br>
 
+<table id="paths" >
+</tr>
 </table>
+
+
 
 <table class="nohover"><tr>
 <td><button id="prev_position" onclick="prev_preset();  ">Prev position</button></td>
@@ -81,61 +84,45 @@ Left Gripper : <input id='l_gripper_position' type="range" min="0" max="100.00" 
 <td><button id="stack_objects" onclick="next_object();  ">Stack object</button></td>
 </tr>
 </table>
+
+<input id='show_full_humanoid' type="checkbox" onclick="show_humanoid()" >Humanoid</input>
 <div id="object_grab_feedback">Text for objects positioning.</div>
 </fieldset>
 
 <fieldset>
+<legend>Linear Positioning:</legend>
 XYZ is to : 
 <input name="xyz_is_" id='xyz_is_wrist' 		 onclick="grip_position = GRIP_NONE;" type="radio"  >wrist</input>
 <input name="xyz_is_" id='xyz_is_gripper_tip' 	 onclick="grip_position = GRIP_TIP;" type="radio"  >tip of gripper</input>
 <input name="xyz_is_" id='xyz_is_gripper_center' onclick="grip_position = GRIP_CENTER;" type="radio"  >center of gripper</input>
 <input name="xyz_is_" id='xyz_is_gripper_back'   onclick="grip_position = GRIP_CENTER;" type="radio"  >back of gripper</input>
-</fieldset>
 
-
-<input id='show_full_humanoid' type="checkbox" onclick="show_humanoid()" >Humanoid</input>
     <canvas id="arm_sim-canvas" style="border: none;" width="512" height="256"
     backgroundColor = 'transparent'></canvas>
     <br/>
 
 <?php include "xyz_sliders.php" ?>
+</fieldset>
+
+
 <?php include "arm_presets.php" ?>
 
 <script>
-	var repeat_path = true;
+
 	var grip_position=GRIP_TIP;
 	var preset_position_index = 0;		// index into the array below:
-	var l_positions = [{x:0,y:0,z:0}];
-	var r_positions = [{x:0,y:0,z:0}];
+	//var l_positions = [{x:0,y:0,z:0}];
+	//var r_positions = [{x:0,y:0,z:0}];
 
-	var angle_table = document.getElementById( "servo_table");
+	var r_object_grab_feedback = document.getElementById( 'object_grab_feedback'   );
+	
 	var path_table  = document.getElementById( "paths");	
 	var path_params = document.getElementById( "path_parameters");	
 	var path_catagory = document.getElementById( "path_catagory");
 	var path_speed    = document.getElementById( "path_speed");		
 	var which_hand    = document.getElementById( "which_hand");
-	
-function format_Number( a )
-{
-//	var prefix = 
-	return (a<0?"":"+") + (((a<100)&&(a>=0))?" ":"") + (((a>-100)&&(a<0))?" ":"") + Number(a).toFixed(2);
-}
-function populate_angle_table(angle_set, cell_1_or_2)
-{
-	var deg_set;
-	if (angle_set.unit=="Radians") 
-		convert_to_degrees( angle_set, deg_set);
-	else 
-		deg_set = angle_set;
-
-	angle_table.rows[1].cells[cell_1_or_2].innerHTML = format_Number(deg_set.Base);
-	angle_table.rows[2].cells[cell_1_or_2].innerHTML = format_Number(deg_set.Shoulder);
-	angle_table.rows[3].cells[cell_1_or_2].innerHTML = format_Number(deg_set.Elbow);
-
-	angle_table.rows[4].cells[cell_1_or_2].innerHTML = format_Number(deg_set.Wrist);
-	angle_table.rows[5].cells[cell_1_or_2].innerHTML = format_Number(deg_set.WristRotate);
-	angle_table.rows[6].cells[cell_1_or_2].innerHTML = format_Number(deg_set.Gripper);
-}
+	var repeat_ctrl   = document.getElementById( "repeat");	
+	var repeat_path = repeat_ctrl.checked;
 
 function activate(l_or_r)
 {
@@ -144,8 +131,8 @@ function activate(l_or_r)
 	var xyz={};
 	xyz.x = vals[0];		xyz.y = vals[1];		xyz.z = vals[2];
 	xyz.approach = inp_approach.value;
-	
-	do_inverse_kinematics( l_or_r,xyz );
+	xyz.hand = l_or_r;
+	do_inverse_kinematics( xyz );
 }
 function update_input() 
 {
@@ -183,58 +170,50 @@ function colorize_arm( status, arm_meshes )
 
 function robot_space_to_arm_space(arm_meshes, xyz)
 {
-	xyz.x -= arm_meshes.shoulder.position.x; 	
-	xyz.y -= arm_meshes.shoulder.position.y; 
-	xyz.z -= arm_meshes.shoulder.position.z; 
+	var xyz_as = {};
+	xyz_as.x 		= xyz.x - arm_meshes.shoulder.position.x; 	
+	xyz_as.y 		= xyz.y - arm_meshes.shoulder.position.y; 
+	xyz_as.z 		= xyz.z - arm_meshes.shoulder.position.z; 
+	xyz_as.hand 	= xyz.hand;
+	xyz_as.WristRotate = xyz.WristRotate;
+	xyz_as.Approach    = xyz.Approach;
+	return xyz_as;
 }
 
-function do_inverse_kinematics(l_or_r, xyz)
+function do_inverse_kinematics(xyz)
 {
 	var status;
 	var servo_angles={};
+	var tmp_xyz  = {};
+	var HAND =  xyz.hand.toUpperCase();
 
-	if (l_or_r=="left") {
-		robot_space_to_arm_space( l_arm_meshes, xyz );
-		status = INV_Grip_XYZ_To_Angles( xyz, xyz.Approach, servo_angles, grip_position );
+	if (HAND=="LEFT") {
+		tmp_xyz = robot_space_to_arm_space( l_arm_meshes, xyz );
+		status  = INV_Grip_XYZ_To_Angles  ( tmp_xyz, servo_angles, xyz.grip_position );
 		colorize_arm( status, l_arm_meshes );
 		if (status=="success") {
 			l_rad_servo_angle_set = servo_angles;
+			l_rad_servo_angle_set.WristRotate = xyz.wrist_rotate - servo_angles.Base;
 			set_servo_angles_rad( l_arm_meshes, l_grip_meshes, arm_sizes, servo_angles );				
 			convert_to_degrees( servo_angles, l_deg_servo_angle_set );
 			populate_angle_table(l_deg_servo_angle_set,1);
 		}
-	} else {
-		robot_space_to_arm_space( r_arm_meshes, xyz );
-		status  = INV_Grip_XYZ_To_Angles( xyz, xyz.Approach, servo_angles, grip_position );		
+	} else if (HAND=="RIGHT") {
+		tmp_xyz = robot_space_to_arm_space( r_arm_meshes, xyz );
+		status  = INV_Grip_XYZ_To_Angles( tmp_xyz, servo_angles, xyz.grip_position );		
 		colorize_arm( status, r_arm_meshes );
 		if (status=="success") {
 			r_rad_servo_angle_set = servo_angles;
+			r_rad_servo_angle_set.WristRotate = xyz.wrist_rotate - servo_angles.Base;
 			set_servo_angles_rad( r_arm_meshes, r_grip_meshes, arm_sizes, servo_angles );
 			convert_to_degrees( servo_angles, r_deg_servo_angle_set );			
 			populate_angle_table(r_deg_servo_angle_set,2);
 		}
 	}
 	return true;
-/*
-		out_of_reach = INV_XYZ_To_Angles( xyz, servo_angles );
-		if (typeof servo_angles.Elbow == 'undefined') {
-			color_code_arm( r_arm_meshes, out_of_range_color );
-			return false;
-		} else {
-			color_code_arm( r_arm_meshes, bone_color );		
-
-		if (typeof servo_angles.Elbow == 'undefined') {
-			color_code_arm( l_arm_meshes, out_of_range_color );
-			return false;
-		} else {
-			color_code_arm( l_arm_meshes, bone_color ); */
-
 }
 </script>
 
-<script src="three.js/build/three.js"></script>
-<script src="three.js/examples/js/controls/OrbitControls.js"></script>
-<script src="three.js/examples/js/objects/ShadowMesh.js"></script>
 
 
 <script>
@@ -324,13 +303,14 @@ function do_inverse_kinematics(l_or_r, xyz)
 		pointLight3.position.set( 90, -100, 90 );
 		scene.add( pointLight3 );
 */
-
-
 </script>
+<script src="sim_objects.js"></script>
+
 <script src="arm_construction.js"></script>
 <script src="arm_gripper.js"></script>
 <script src="arm_servos.js"></script>		
-<script src="sim_objects.js"></script>
+
+
 <script>
 
 

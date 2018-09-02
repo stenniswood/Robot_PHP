@@ -173,26 +173,20 @@ function getGripper_length( GripTip )
 		full_length = 0;		// center of grip
 	return full_length;	
 }
-function INV_Grip_XYZ_To_Angles( XYZ, Approach, mServoAngles, GripTip)
+
+function INV_Grip_XYZ_To_Angles( XYZ, mServoAngles, GripTip)
 {
 	// NEED BASE ANGLE to subtract the gripper vector:
 	mServoAngles.Base	= INV_Calc_BaseRotation    ( XYZ.y, XYZ.z );
 	
 	// COMPUTE LENGTH OF INCLUDED GRIPPER :
 	var full_length = getGripper_length( GripTip );
-/*	var full_length = arm_sizes.wrist_length + grip_sizes.wrist_length + grip_sizes.joiner_width;
-	if (GripTip==GRIP_TIP)
-		full_length += grip_sizes.grip1_length;
-	else if (GripTip==GRIP_CENTER)
-		full_length += grip_sizes.grip1_length/2;		// center of grip
-	else if (GripTip==GRIP_BACK)
-		full_length += 0;		// center of grip
-	else if (GripTip==GRIP_NONE)
-		full_length = 0;		// center of grip
-*/
+
 	// GET COMPONENTS OF APPROACH VECTOR IN WRIST SPACE : 
-	var x_approach = full_length * Math.sin(Approach);
-	var y_approach = full_length * Math.cos(Approach);
+	if (typeof XYZ.Approach=="undefined") 
+		XYZ.Approach = -90;	
+	var x_approach = full_length * Math.sin(XYZ.Approach);
+	var y_approach = full_length * Math.cos(XYZ.Approach);
 	var approach_vector = new THREE.Vector3( x_approach, y_approach, 0 );
 
 	// ROTATE WRIST SPACE VECTOR THRU BASE ROTATION :
@@ -216,7 +210,7 @@ function forward_equations( arm_sizes, angle_set, XYZ )
 	var y_comp1	= arm_sizes.shoulder_length * Math.sin( angle_set.Shoulder );
 	
 	// Now the fore arm projections : 
-	var elbow_angle = angle_set.Shoulder + angle_set.elbow_angle);
+	var elbow_angle = angle_set.Shoulder + angle_set.elbow_angle;
 	var x_comp2	= arm_sizes.lower_arm_length * Math.cos( elbow_angle );
 	var y_comp2	= arm_sizes.lower_arm_length * Math.sin( elbow_angle );
 		

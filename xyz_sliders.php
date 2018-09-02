@@ -36,14 +36,22 @@
 
 </tr>
 <td>WR: </td>
-<td><input id='l_arm_position_wrist_rotate' type="range" min="-320" max="320" value="0.5" class="xyzslider" style="width:250" ></td>
+<td><input id='l_arm_position_wrist_rotate' type="range" min="-3600" max="3600" value="0.5" class="xyzslider" style="width:250" ></td>
 <td><span id="l_arm_position_wrist_rotate_label">0</span></td>
-<td><input id='r_arm_position_wrist_rotate' type="range" min="-320" max="320" value="0.5" class="xyzslider" style="width:250" ></td>
+<td><input id='r_arm_position_wrist_rotate' type="range" min="-3600" max="3600" value="0.5" class="xyzslider" style="width:250" ></td>
 <td><span id="r_arm_position_wrist_rotate_label" width="50">0</span></span></td></tr>
+
+<tr>
+<td>Gripper:</td>
+<td><input id='l_gripper_position' type="range" min="0" max="100.00" value="0.5" class="xyzslider" style="width:250" ></td>
+<td><span id="l_grip">0</span></td>
+<td><input id='r_gripper_position' type="range" min="0" max="100.00" value="0.5" class="xyzslider" style="width:250" ></td>
+<td><span id="r_grip">0</span></td>
+</tr>
 </table>
 
 <table id="servo_table">
-<tr><th>Servo</th><th>Left Arm</th><th>Right Arm</th></tr>
+<tr><th>Angular Results</th><th>Left Arm</th><th>Right Arm</th></tr>
 <tr><td>0 - Base</td><td>0.0</td><td>0.0</td></tr>
 <tr><td>1 - Shoulder</td><td>0.0</td><td>0.0</td></tr>
 <tr><td>2 - Elbow</td><td>0.0</td><td>0.0</td></tr>
@@ -90,8 +98,9 @@
 	var r_arm_slider_label_ap = document.getElementById( 'r_arm_position_approach_label'   );	
 	var r_arm_slider_label_wr = document.getElementById( 'r_arm_position_wrist_rotate_label'   );	
 
-	var r_object_grab_feedback = document.getElementById( 'object_grab_feedback'   );
 
+	var angle_table = document.getElementById( "servo_table");
+	
 // HANDLERS FOR LEFT HAND SLIDER CHANGES : 
 l_arm_slider_x.oninput = function() { 
   update_input();
@@ -114,9 +123,10 @@ l_arm_slider_ap.oninput = function() {
   l_arm_slider_label_ap.innerHTML = parseFloat(this.value/100).toFixed(2);
 };
 l_arm_slider_wr.oninput = function() { 
-  l_rad_servo_angle_set.WristRotate = this.value/100;
+	var angle_deg = this.value/10;
+  l_rad_servo_angle_set.WristRotate = (angle_deg*Math.PI/180.);
   set_servo_angles_rad( l_arm_meshes, l_grip_meshes, arm_sizes, l_rad_servo_angle_set );  
-  l_arm_slider_label_wr.innerHTML = parseFloat(this.value/100).toFixed(2);
+  l_arm_slider_label_wr.innerHTML = parseFloat(angle_deg).toFixed(2);
 };
 l_grip_slider.oninput = function() { 
 	open_gripper( this.value/100., l_grip_meshes );
@@ -146,9 +156,10 @@ r_arm_slider_ap.oninput = function() {
   r_arm_slider_label_ap.innerHTML = Number(this.value/100).toFixed(2);
 };
 r_arm_slider_wr.oninput = function() { 
-  r_rad_servo_angle_set.WristRotate = this.value/100;
+  var angle_deg = this.value/10;
+  r_rad_servo_angle_set.WristRotate = angle_deg*Math.PI/180.;
   set_servo_angles_rad( r_arm_meshes, r_grip_meshes, arm_sizes, r_rad_servo_angle_set );
-  r_arm_slider_label_wr.innerHTML = Number(this.value/100).toFixed(2);
+  r_arm_slider_label_wr.innerHTML = Number(angle_deg).toFixed(2);
 };
 r_grip_slider.oninput = function() { 
 	open_gripper( this.value/100., r_grip_meshes );
@@ -158,26 +169,56 @@ r_grip_slider.oninput = function() {
 
 function set_sliders(XYZ)
 {
-//	paths_xyz[chosen_path_index].values.length ;
-//  
-	l_arm_slider_x.value = XYZ.x*10.;
-	l_arm_slider_y.value = XYZ.y*10.;	
-	l_arm_slider_z.value = XYZ.z*10.;		
+	if (XYZ.hand=='Left') {
+		l_arm_slider_x.value = XYZ.x*10.;
+		l_arm_slider_y.value = XYZ.y*10.;	
+		l_arm_slider_z.value = XYZ.z*10.;
+		if (typeof XYZ.Approach != "undefined") 
+		{
+			l_arm_slider_ap.value 		    = XYZ.Approach*10.;	
+			l_arm_slider_label_ap.innerHTML = parseFloat(l_arm_slider_x.value/10.).toFixed(2);
+		}				
+		l_arm_slider_label_x.innerHTML = parseFloat(l_arm_slider_x.value/10.).toFixed(2);
+		l_arm_slider_label_y.innerHTML = parseFloat(l_arm_slider_y.value/10.).toFixed(2);
+		l_arm_slider_label_z.innerHTML = parseFloat(l_arm_slider_z.value/10.).toFixed(2);		
 
-	r_arm_slider_x.value = XYZ.x*10.;
-	r_arm_slider_y.value = XYZ.y*10.;	
-	r_arm_slider_z.value = XYZ.z*10.;		
-	
-	r_arm_slider_label_x.innerHTML = parseFloat(r_arm_slider_x.value/10.).toFixed(2);
-	r_arm_slider_label_y.innerHTML = parseFloat(r_arm_slider_y.value/10.).toFixed(2);
-	r_arm_slider_label_z.innerHTML = parseFloat(r_arm_slider_z.value/10.).toFixed(2);		
+	} else {
+		r_arm_slider_x.value = XYZ.x*10.;
+		r_arm_slider_y.value = XYZ.y*10.;	
+		r_arm_slider_z.value = XYZ.z*10.;		
+		if (typeof XYZ.Approach != "undefined") {
+			r_arm_slider_ap.value 			= XYZ.Approach*10.;
+			r_arm_slider_label_ap.innerHTML = parseFloat(l_arm_slider_x.value/10.).toFixed(2);			
+		}
+		r_arm_slider_label_x.innerHTML = parseFloat(r_arm_slider_x.value/10.).toFixed(2);
+		r_arm_slider_label_y.innerHTML = parseFloat(r_arm_slider_y.value/10.).toFixed(2);
+		r_arm_slider_label_z.innerHTML = parseFloat(r_arm_slider_z.value/10.).toFixed(2);
+	}
 
-	l_arm_slider_label_x.innerHTML = parseFloat(l_arm_slider_x.value/10.).toFixed(2);
-	l_arm_slider_label_y.innerHTML = parseFloat(l_arm_slider_y.value/10.).toFixed(2);
-	l_arm_slider_label_z.innerHTML = parseFloat(l_arm_slider_z.value/10.).toFixed(2);		
 
 }
 
+function format_Number( a )
+{
+	return (a<0?"":"+") + (((a<100)&&(a>=0))?" ":"") + (((a>-100)&&(a<0))?" ":"") + Number(a).toFixed(2);
+}
+
+function populate_angle_table(angle_set, cell_1_or_2)
+{
+	var deg_set;
+	if (angle_set.unit=="Radians") 
+		convert_to_degrees( angle_set, deg_set);
+	else 
+		deg_set = angle_set;
+
+	angle_table.rows[1].cells[cell_1_or_2].innerHTML = format_Number(deg_set.Base);
+	angle_table.rows[2].cells[cell_1_or_2].innerHTML = format_Number(deg_set.Shoulder);
+	angle_table.rows[3].cells[cell_1_or_2].innerHTML = format_Number(deg_set.Elbow);
+
+	angle_table.rows[4].cells[cell_1_or_2].innerHTML = format_Number(deg_set.Wrist);
+	angle_table.rows[5].cells[cell_1_or_2].innerHTML = format_Number(deg_set.WristRotate);
+	angle_table.rows[6].cells[cell_1_or_2].innerHTML = format_Number(deg_set.Gripper);
+}
 
 </script>
 
