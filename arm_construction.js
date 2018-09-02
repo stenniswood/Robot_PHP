@@ -1,4 +1,9 @@
-
+/* yellow robot arm - measured dimensions are :
+var LENGTH_SHOULDER =	4.75;
+var LENGTH_ELBOW	=	4.75;
+var LENGTH_WRIST	=	6.0;
+var BASE_HEIGHT		= 	2.5;
+*/
 var arm_sizes = {
 		upper_arm_length:10,
 		lower_arm_length:10,
@@ -14,14 +19,17 @@ var arm_sizes = {
 		wrist_mot_radius:1.5,
 };
 
+var out_of_range_color = 0xffF02f;
+var collision_color    = 0xff001f;
+	
 function get_total_arm_length()
 {
 	return arm_sizes.upper_arm_length + arm_sizes.lower_arm_length + arm_sizes.wrist_length;
 }
 
 let arm_material   = {};
-let l_arm_geom     = {};
-let r_arm_geom     = {};
+let l_arm_geom     = [];
+let r_arm_geom     = [];
 let l_arm_meshes   = {};
 let r_arm_meshes   = {};
 
@@ -43,28 +51,28 @@ function arm_materials()
 
 function construct_arm(arm_geoms,arm_meshes, joint_material, bone_material )
 {
-			// UPPER ARM :
-			arm_geoms.shoulder		= new THREE.SphereBufferGeometry( arm_sizes.shoulder_radius,  arm_sizes.shoulder_radius,  20, 20 );
-			arm_geoms.upper_arm		= new THREE.BoxBufferGeometry	( arm_sizes.upper_arm_depth,  arm_sizes.upper_arm_width,  arm_sizes.upper_arm_length );
-			arm_geoms.elbow 	 	= new THREE.CylinderGeometry	( arm_sizes.elbow_radius, 	  arm_sizes.elbow_radius, 	  3, 32 );
-			arm_geoms.fore_arm 		= new THREE.BoxGeometry			( arm_sizes.lower_arm_depth,  arm_sizes.lower_arm_width,  arm_sizes.lower_arm_length );
-			arm_geoms.wrist    		= new THREE.BoxGeometry			( arm_sizes.lower_arm_depth,  arm_sizes.lower_arm_width,  arm_sizes.wrist_length );
-			arm_geoms.wrist_mot		= new THREE.CylinderGeometry	( arm_sizes.wrist_mot_radius, arm_sizes.wrist_mot_radius, 3, 32 );
+	// UPPER ARM :
+	arm_geoms[0] /*shoulder	 */		= new THREE.SphereBufferGeometry( arm_sizes.shoulder_radius,  arm_sizes.shoulder_radius,  20, 20 );
+	arm_geoms[1] /*upper_arm */		= new THREE.BoxBufferGeometry	( arm_sizes.upper_arm_depth,  arm_sizes.upper_arm_width,  arm_sizes.upper_arm_length );
+	arm_geoms[2] /*elbow 	 */		= new THREE.CylinderGeometry	( arm_sizes.elbow_radius, 	  arm_sizes.elbow_radius, 	  3, 32 );
+	arm_geoms[3] /*fore_arm  */		= new THREE.BoxGeometry			( arm_sizes.lower_arm_depth,  arm_sizes.lower_arm_width,  arm_sizes.lower_arm_length );
+	arm_geoms[4] /*wrist     */		= new THREE.BoxGeometry			( arm_sizes.lower_arm_depth,  arm_sizes.lower_arm_width,  arm_sizes.wrist_length );
+	arm_geoms[5] /*wrist_mot */		= new THREE.CylinderGeometry	( arm_sizes.wrist_mot_radius, arm_sizes.wrist_mot_radius, 3, 32 );
 
-			// Where to 'grab' the part : 
-			arm_geoms.upper_arm.translate ( 0, 0, arm_sizes.upper_arm_length/2 );
-			arm_geoms.fore_arm.translate  ( 0, 0, arm_sizes.upper_arm_length/2 );
-			arm_geoms.elbow.translate	  ( 0, 0, arm_sizes.upper_arm_length   );
-			arm_geoms.wrist.translate	  ( 0, 0, arm_sizes.wrist_length/2 	   );
-			arm_geoms.wrist_mot.translate ( 0, 0, 0 );
+	// Where to 'grab' the part : 
+	arm_geoms[1].translate ( 0, 0, arm_sizes.upper_arm_length/2 );		// .upper_arm
+	arm_geoms[2].translate ( 0, 0, arm_sizes.upper_arm_length   );	// .elbow
+	arm_geoms[3].translate ( 0, 0, arm_sizes.upper_arm_length/2 );		// .fore_arm
+	arm_geoms[4].translate ( 0, 0, arm_sizes.wrist_length/2);		// .wrist
+	arm_geoms[5].translate ( 0, 0, 0 );									// .wrist_mot
 
-			// 
-			arm_meshes.shoulder  = new THREE.Mesh( arm_geoms.shoulder,   joint_material );
-			arm_meshes.upper_arm = new THREE.Mesh( arm_geoms.upper_arm,  bone_material  );						
-			arm_meshes.elbow     = new THREE.Mesh( arm_geoms.elbow,      joint_material );
-			arm_meshes.fore_arm  = new THREE.Mesh( arm_geoms.fore_arm,   bone_material  );
-			arm_meshes.wrist_mot = new THREE.Mesh( arm_geoms.wrist_mot,  joint_material );			
-			arm_meshes.wrist     = new THREE.Mesh( arm_geoms.wrist,      bone_material  );
+	// 
+	arm_meshes.shoulder  = new THREE.Mesh( arm_geoms[0],  joint_material );
+	arm_meshes.upper_arm = new THREE.Mesh( arm_geoms[1],  bone_material  );						
+	arm_meshes.elbow     = new THREE.Mesh( arm_geoms[2],  joint_material );
+	arm_meshes.fore_arm  = new THREE.Mesh( arm_geoms[3],  bone_material  );
+	arm_meshes.wrist_mot = new THREE.Mesh( arm_geoms[4],  joint_material );			
+	arm_meshes.wrist     = new THREE.Mesh( arm_geoms[5],  bone_material  );
 
 
 //			upper_arm_mesh.position.x = 0;		upper_arm_mesh.position.y = 0;
@@ -139,6 +147,86 @@ function add_to_scene(meshes)
 	scene.add( meshes.fore_arm  );
 	scene.add( meshes.wrist_mot );
 	scene.add( meshes.wrist     );			
+}
+
+function arms_collide()
+{
+	var retval = false;
+	// Get Bounding Box for each segment of the Left Arm:
+	var l_boxes = [];
+	var vec_min=[];
+	var vec_max=[];
+	l_arm_geom.forEach ( (variable,index) => {
+		l_arm_geom[index].computeBoundingBox();
+		vec_min[index] = variable.boundingBox.min;
+		vec_max[index] = variable.boundingBox.max;
+	});
+	
+	l_arm_meshes.shoulder.updateMatrixWorld();
+	l_arm_meshes.shoulder.localToWorld ( vec_min[0] );	l_arm_meshes.shoulder.localToWorld	( vec_max[0] );
+	l_boxes[0] = new THREE.Box3( vec_min[0], vec_max[0] );
+	
+	l_arm_meshes.upper_arm.updateMatrixWorld();	
+	l_arm_meshes.upper_arm.localToWorld( vec_min[1] );	l_arm_meshes.upper_arm.localToWorld	( vec_max[1] );		
+	l_boxes[1] = new THREE.Box3( vec_min[1], vec_max[1] );
+		
+	l_arm_meshes.elbow.updateMatrixWorld();			
+	l_arm_meshes.elbow.localToWorld	   ( vec_min[2] );	l_arm_meshes.elbow.localToWorld		( vec_max[2] );		
+	l_boxes[2] = new THREE.Box3( vec_min[2], vec_max[2] );
+	
+	l_arm_meshes.fore_arm.updateMatrixWorld();		
+	l_arm_meshes.fore_arm.localToWorld ( vec_min[3] );	l_arm_meshes.fore_arm.localToWorld	( vec_max[3] );		
+	l_boxes[3] = new THREE.Box3( vec_min[3], vec_max[3] );			
+
+
+
+	vec_min = [];
+	vec_max = [];
+	r_arm_geom.forEach ( (variable,index) => {
+		r_arm_geom[index].computeBoundingBox();
+		vec_min[index] = variable.boundingBox.min;
+		vec_max[index] = variable.boundingBox.max;
+	});
+
+	var r_boxes = [];	
+	r_arm_meshes.shoulder.updateMatrixWorld();
+	r_arm_meshes.shoulder.localToWorld ( vec_min[0] );	r_arm_meshes.shoulder.localToWorld	( vec_max[0] );
+	r_boxes[0] = new THREE.Box3( vec_min[0], vec_max[0] );
+
+	r_arm_meshes.upper_arm.updateMatrixWorld();	
+	r_arm_meshes.upper_arm.localToWorld( vec_min[1] );	r_arm_meshes.upper_arm.localToWorld	( vec_max[1] );		
+	r_boxes[1] = new THREE.Box3( vec_min[1], vec_max[1] );
+		
+	r_arm_meshes.elbow.updateMatrixWorld();	
+	r_arm_meshes.elbow.localToWorld	   ( vec_min[2] );	r_arm_meshes.elbow.localToWorld		( vec_max[2] );		
+	r_boxes[2] = new THREE.Box3( vec_min[2], vec_max[2] );
+	
+	r_arm_meshes.fore_arm.updateMatrixWorld();	
+	r_arm_meshes.fore_arm.localToWorld ( vec_min[3] );	r_arm_meshes.fore_arm.localToWorld	( vec_max[3] );		
+	r_boxes[3] = new THREE.Box3( vec_min[3], vec_max[3] );			
+
+
+	// Get Bounding Box for each segment of the Right Arm:
+/*	var r_boxes = [];
+	r_arm_geom.forEach ( (variable,index) => {
+		variable.computeBoundingBox();
+		vec1 = variable.boundingBox.min;
+		vec2 = variable.boundingBox.max;
+		r_arm_meshes[index].localToWorld( vec1 );
+		r_arm_meshes[index].localToWorld( vec2 );		
+		r_boxes[index] = new THREE.Box3( vec1, vec2 );
+	}); */
+	
+	// Check for intersection amoung any 2 boxes:	
+	var collision;
+	l_boxes.forEach ( (l_box,l_index) => {		
+		r_boxes.forEach( (r_box,r_index) => {			
+			collision = r_box.intersectsBox( l_box );
+			if (collision)
+				retval = true;
+		})
+	});
+	return retval;
 }
 
 arm_materials();

@@ -12,15 +12,26 @@
 	<body>
 
 		<script src="js/three.js"></script>
+		<script src="three.js/examples/js/controls/OrbitControls.js"></script>
+		<script src="three.js/examples/js/objects/ShadowMesh.js"></script>
+		
 		<script>
 			// Our Javascript will go here.
 			var scene = new THREE.Scene();
-			var camera = new THREE.PerspectiveCamera( 120, window.innerWidth / window.innerHeight, 0.1, 5000 );
+			var camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 5000 );
 
 			var renderer = new THREE.WebGLRenderer();
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			document.body.appendChild( renderer.domElement );			
-			
+
+	var controls = new THREE.OrbitControls( camera, renderer.domElement );
+	controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+	controls.dampingFactor = 0.25;
+	controls.screenSpacePanning = false;
+	controls.minDistance = 100;
+	controls.maxDistance = 500
+	controls.maxPolarAngle = Math.PI / 2;
+
 			// CUBE:
 //			var geometry = new THREE.BoxGeometry( 1, 1, 1 );
 			var geometry  = new THREE.CylinderGeometry( 5, 5, 20, 32 );
@@ -28,8 +39,8 @@
 			var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 			var cube = new THREE.Mesh( geometry, material );
 			var cube2 = new THREE.Mesh( geometry, material );			
-			scene.add( cube );
-			scene.add( cube );
+			//scene.add( cube );
+			//scene.add( cube );
 			var textMesh1;
 
 				var dirLight = new THREE.DirectionalLight( 0xffffff, 0.125 );
@@ -40,19 +51,19 @@
 				pointLight.position.set( 0, 100, 90 );
 				scene.add( pointLight );
 				
-			camera.position.z = 30;
+			camera.position.z = 50;
 			
 			function animate() {
 				requestAnimationFrame( animate );
-				cube.rotation.x += 0.01;
-				cube.rotation.y += 0.01;	
+				//cube.rotation.x += 0.01;
+				//cube.rotation.y += 0.01;	
 				textMesh1.rotation.x += 0.01;
 				//textMesh1.rotation.y += 0.01;
 				renderer.render( scene, camera );
 			}
 
 	var loader = new THREE.FontLoader();
-	loader.load( 'js/fonts/helvetiker_bold.typeface.json', function ( font ) {
+	loader.load( 'three.js/examples/fonts/helvetiker_bold.typeface.json', function ( font ) {
 		var textGeo = new THREE.TextGeometry( 'Beyond Kinetics.js!', {
 			font: font,
 			size: 10,
@@ -83,14 +94,50 @@
 		textMesh1.rotation.x = 0;
 		textMesh1.rotation.y = Math.PI * 2;
 		group.add( textMesh1 );
-		scene.add( group );	
+//		scene.add( group );	
 		animate();						
 	} );
-		
-			
-			
-			
-			
+	//	<script src="sim_objects.js"> <script>
+	
+	
+		document.addEventListener("keydown", onDocumentKeyDown, false);
+	function onDocumentKeyDown(event) {
+	
+		var delta = 2.0 *Math.PI/180.;
+		var key = event.key;
+		if (key == 'y') 	   {			l_rad_leg_angle_set.Hip   += delta;
+		} else if (key == 'Y') {			l_rad_leg_angle_set.Hip   -= delta;
+		} else if (key == 'h') {			l_rad_leg_angle_set.Knee  += delta;
+		} else if (key == 'H') {			l_rad_leg_angle_set.Knee  -= delta;
+		} else if (key == 'n') {			l_rad_leg_angle_set.Ankle += delta;
+		} else if (key == 'N') {			l_rad_leg_angle_set.Ankle -= delta;
+
+		} else if (key == 'u') {			r_rad_leg_angle_set.Hip   += delta;
+		} else if (key == 'U') {			r_rad_leg_angle_set.Hip   -= delta;
+		} else if (key == 'j') {			r_rad_leg_angle_set.Knee  += delta;
+		} else if (key == 'J') {			r_rad_leg_angle_set.Knee  -= delta;
+		} else if (key == 'm') {			r_rad_leg_angle_set.Ankle += delta;
+		} else if (key == 'M') {			r_rad_leg_angle_set.Ankle -= delta;
+
+		} else if (key == ' ') {
+			l_rad_leg_angle_set.Hip 	= 0.0;
+			l_rad_leg_angle_set.Knee    = 0.0;
+			l_rad_leg_angle_set.Ankle   = 0.0;
+			l_rad_leg_angle_set.HipRotate = 0.0;			
+
+			r_rad_servo_angle_set.Hip 	= 0.0;
+			r_rad_servo_angle_set.Knee  = 0.0;
+			r_rad_servo_angle_set.Ankle = 0.0;
+			r_rad_servo_angle_set.HipRotate = 0.0;			
+		}
+		set_leg_angles( l_rad_leg_angle_set, l_leg_meshes );
+		set_leg_angles( r_rad_leg_angle_set, r_leg_meshes );		
+	};			
+
 		</script>
+
+	<script src="sim_bipedal.js"> </script>
+
+		
 	</body>
 </html>

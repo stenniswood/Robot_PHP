@@ -113,6 +113,9 @@
 	<option value="1" selected>Command</option>
 	<option value="3" selected>Directive</option>	
 	<option value="4" selected>System</option>		
+	<option value="5" selected>Left_arm</option>		
+	<option value="5" selected>Right_arm</option>				
+	<option value="6" selected>Coordinated_arms</option>					
 </select>
 <button id="delay_button" >
 <img src='icons/delay.png' alt='dt' onclick='handle_add_delay()' style='width:25px;height:25px;'>
@@ -791,7 +794,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		case "l_arm_xyz"		:	var xyz = {};		
 				xyz['x']=words[1]; xyz['y']=words[2]; xyz['z']=words[3];				
 				INV_XYZ_To_Angles( xyz, servo_angles );
-				set_servo_angles_rad( l_arm_meshes, arm_sizes, angle_set );
+				set_servo_angles_rad( l_arm_meshes, l_grip_meshes, arm_sizes, angle_set );
 				break;
 		case "l_arm_gripper":				break;
 		case "l_arm_wrist"	:				break;
@@ -802,7 +805,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		case "r_arm_xyz"	:	var xyz = {};		
 				xyz['x']=words[1]; xyz['y']=words[2]; xyz['z']=words[3];
 				INV_XYZ_To_Angles( xyz, servo_angles );
-				set_servo_angles_rad( r_arm_meshes, arm_sizes, angle_set );
+				set_servo_angles_rad( r_arm_meshes, r_grip_meshes, arm_sizes, angle_set );
 				break;
 		case "r_arm_gripper":				break;
 		case "r_arm_wrist"	:				break;
@@ -832,7 +835,15 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 					break;
 			case "Directive":	perform_directive(action);
 					break;
-			case "System"   :	perform_system(action);
+			case "System"     :	perform_system(action);
+					break;
+			case "Left_arm"   :	perform_system(action);
+					break;
+			case "Right_arm"  :	perform_system(action);
+					break;
+			case "Left_leg"   :	perform_system(action);
+					break;
+			case "Right_leg"  :	perform_system(action);
 					break;
 			default:
 					break;				
