@@ -184,13 +184,13 @@ function init_Directive_help()
 	var help_context = { };
 	var help_params  = { };		
 	help_context["delay"] 		= "Pause sequence for a while";
-	help_params ["delay"] 			= "number of milliseconds";
+	help_params ["delay"] 		= "number of milliseconds";
 
 	help_context["goto"] 		= "Pause sequence for a while";
-	help_params ["goto"] 			= "number of milliseconds";
+	help_params ["goto"] 		= "number of milliseconds";
 
-	help_context["range"] 		= "Pause sequence for a while";
-	help_params ["range"] 			= "number of milliseconds";
+	help_context["range"] 		= "Map a signal to a new range. Creates new signal preface with M_";
+	help_params ["range"] 		= "$SRC_VAR_NAME SRC_MIN SRC_MAX DEST_MIN DEST_MAX";
 
 	help_context["if_less_than"] 	= "Pause sequence for a while";
 	help_params ["if_less_than"] 	= "number of milliseconds";

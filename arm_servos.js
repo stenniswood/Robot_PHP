@@ -25,7 +25,7 @@ var l_deg_servo_angle_set = {
 	Elbow   : 0.0,
 	Wrist   : 0.0,
 	WristRotate   : 0.0,
-	Gripper   : 0.0,	
+	Gripper : 0.0,
 	hand	: "Left",
 	unit    : "Degrees",
 };
@@ -58,6 +58,7 @@ function convert_to_radians( angle_set, output_set )
 	output_set.Elbow 	= angle_set.Elbow    * Math.PI / 180.;
 	output_set.Wrist 	= angle_set.Wrist    * Math.PI / 180.;				
 	output_set.WristRotate 	= angle_set.WristRotate    * Math.PI / 180.;				
+	output_set.Gripper 	= angle_set.Gripper;
 	output_set.unit 	= "Radians";
 }
 function convert_to_degrees( angle_set, output_set )
@@ -68,9 +69,10 @@ function convert_to_degrees( angle_set, output_set )
 	
 	output_set.Base      = angle_set.Base     * 180. / Math.PI ;			
 	output_set.Shoulder  = angle_set.Shoulder * 180. / Math.PI ;
-	output_set.Elbow 	= angle_set.Elbow    * 180. / Math.PI ;
-	output_set.Wrist 	= angle_set.Wrist    * 180. / Math.PI ;				
+	output_set.Elbow 	 = angle_set.Elbow    * 180. / Math.PI ;
+	output_set.Wrist 	 = angle_set.Wrist    * 180. / Math.PI ;				
 	output_set.WristRotate 	= angle_set.WristRotate * 180. / Math.PI ;					
+	output_set.Gripper 	 = angle_set.Gripper;						
 	output_set.unit = "Degrees";
 }
 
@@ -115,15 +117,9 @@ function set_servo_angles_rad( meshes, grip_mesh, arm_sizes, angle_set )
 		meshes.wrist.rotation.y  	  = angle_set.Shoulder + angle_set.Elbow + angle_set.Wrist;			
 
 		// MOVE LEFT GRIPPER:	
+		if (isNaN(angle_set.WristRotate))	return;
 		meshes.wrist.updateMatrixWorld();		
 		var fa_vec     = new THREE.Vector3( 0,0, arm_sizes.wrist_length );
-//		rot_point = meshes.wrist.localToWorld( fa_vec );
-/*		grip_mesh.wrist.position.x 		= rot_point.x;
-		grip_mesh.wrist.position.y 		= rot_point.y;				
-		grip_mesh.wrist.position.z 		= rot_point.z;		*/
-//		grip_mesh.wrist.rotation.x = Base;		
-//		grip_mesh.wrist.rotation.y = angle_set.Shoulder + angle_set.Elbow + angle_set.Wrist;		
-
 		grip_mesh.wrist.rotation.z = angle_set.WristRotate;
 		
 		

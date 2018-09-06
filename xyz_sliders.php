@@ -106,31 +106,39 @@ l_arm_slider_x.oninput = function() {
   update_input();
   activate("left");
   l_arm_slider_label_x.innerHTML = parseFloat(this.value/10).toFixed(2);
+  populate_angle_table(l_rad_servo_angle_set, 1);
 };
 l_arm_slider_y.oninput = function() { 
   update_input();
   activate("left");
   l_arm_slider_label_y.innerHTML = parseFloat(this.value/10.).toFixed(2);
+  populate_angle_table(l_rad_servo_angle_set, 1);  
 };
 l_arm_slider_z.oninput = function() { 
   update_input();
   activate("left");
   l_arm_slider_label_z.innerHTML = parseFloat(this.value/10.).toFixed(2);
+  populate_angle_table(l_rad_servo_angle_set, 1);  
 };
 l_arm_slider_ap.oninput = function() { 
   l_rad_servo_angle_set.Wrist = this.value/100;
   set_servo_angles_rad( l_arm_meshes, l_grip_meshes, arm_sizes, l_rad_servo_angle_set );  
+						update_object_position(xyz);  
   l_arm_slider_label_ap.innerHTML = parseFloat(this.value/100).toFixed(2);
+  populate_angle_table(l_rad_servo_angle_set, 1);  
 };
 l_arm_slider_wr.oninput = function() { 
 	var angle_deg = this.value/10;
   l_rad_servo_angle_set.WristRotate = (angle_deg*Math.PI/180.);
   set_servo_angles_rad( l_arm_meshes, l_grip_meshes, arm_sizes, l_rad_servo_angle_set );  
+  						update_object_position(xyz);
   l_arm_slider_label_wr.innerHTML = parseFloat(angle_deg).toFixed(2);
+  populate_angle_table(l_rad_servo_angle_set, 1);  
 };
 l_grip_slider.oninput = function() { 
-	open_gripper( this.value/100., l_grip_meshes );
+	open_gripper( this.value/100., "Left", l_grip_meshes );
   l_grip_label.innerHTML = this.value;
+  populate_angle_table(l_rad_servo_angle_set, 1);  
 };
 
 
@@ -139,31 +147,39 @@ r_arm_slider_x.oninput = function() {
   update_input_r();
   activate("right");
   r_arm_slider_label_x.innerHTML = parseFloat(this.value/10).toFixed(2);
+  populate_angle_table(l_rad_servo_angle_set, 2);  
 };
 r_arm_slider_y.oninput = function() { 
   update_input_r();
   activate("right");  
   r_arm_slider_label_y.innerHTML = parseFloat(this.value/10.).toFixed(2);
+  populate_angle_table(l_rad_servo_angle_set, 2);    
 };
 r_arm_slider_z.oninput = function() { 
   update_input_r();
   activate("right");  
   r_arm_slider_label_z.innerHTML = parseFloat(this.value/10.).toFixed(2);
+  populate_angle_table(l_rad_servo_angle_set, 2);    
 };
 r_arm_slider_ap.oninput = function() { 
   r_rad_servo_angle_set.Wrist = this.value/100;
   set_servo_angles_rad( r_arm_meshes, r_grip_meshes, arm_sizes, r_rad_servo_angle_set );
+						update_object_position(xyz);  
   r_arm_slider_label_ap.innerHTML = Number(this.value/100).toFixed(2);
+  populate_angle_table(l_rad_servo_angle_set, 2);    
 };
 r_arm_slider_wr.oninput = function() { 
   var angle_deg = this.value/10;
   r_rad_servo_angle_set.WristRotate = angle_deg*Math.PI/180.;
   set_servo_angles_rad( r_arm_meshes, r_grip_meshes, arm_sizes, r_rad_servo_angle_set );
+						update_object_position(xyz);  
   r_arm_slider_label_wr.innerHTML = Number(angle_deg).toFixed(2);
+  populate_angle_table(l_rad_servo_angle_set, 2);    
 };
 r_grip_slider.oninput = function() { 
-	open_gripper( this.value/100., r_grip_meshes );
+  open_gripper( this.value/100., "Right", r_grip_meshes );
   r_grip_label.innerHTML = this.value;
+  populate_angle_table(l_rad_servo_angle_set, 2);    
 };	
 
 
@@ -205,7 +221,7 @@ function format_Number( a )
 
 function populate_angle_table(angle_set, cell_1_or_2)
 {
-	var deg_set;
+	var deg_set = {};
 	if (angle_set.unit=="Radians") 
 		convert_to_degrees( angle_set, deg_set);
 	else 

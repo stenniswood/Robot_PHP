@@ -151,6 +151,8 @@
 
 </script>
 
+<?php include "servo_slider_set.php"; ?>
+
 <fieldset>
 <legend>Pi Aux</legend>
 <div>
@@ -175,7 +177,6 @@
 <tr><td>Lowside Driver 8</td><td><button><?php echo $Lowside[7]; ?></button></td></tr>
 </table>
 </div>
-
 </fieldset>
 
 </div>

@@ -1,5 +1,4 @@
 
-
 <?php
 
 	// get the q parameter from URL

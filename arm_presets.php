@@ -81,9 +81,7 @@ function create_path()
 	var XYZ2 = {};
 	var num_samples = 10;	
 	var str = path_catagory.selectedOptions[0].innerHTML;
-	path_obj.name = str+paths_xyz.length;	
-	
-
+	path_obj.name = str+paths_xyz.length;
 	
 	if (str=="Pick and Place") {
 		parse_into_xyz_xyz   ( XYZ1, XYZ2 );
@@ -108,7 +106,19 @@ function create_path()
 		create_shake_path(path_obj.values, y, height, which_hand.value, 3);
 	} else if (str=="Put hands together") {
 	
-	} else if (str=="Line Segment") {
+	} else if (str=="Open door") {
+	
+	} else if (str=="Open drawer") {
+	
+	} else if (str=="Close door") {
+	
+	} else if (str=="Close drawer") {
+			
+	} else if (str=="Move left hand to right") {
+	
+	} else if (str=="Move right hand to left") {
+
+	} else if (str=="Bull Dozer lift") {
 	
 	}
 	paths_xyz.push( path_obj );

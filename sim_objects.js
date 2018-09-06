@@ -158,18 +158,41 @@ function determine_wrist_rotate(small_axis,base)
 	
 	return retval;
 }
+
+function which_hand_is_best(xyz)
+{
+	// INVERSE KINEMATICS:
+	var result = do_inverse_kinematics(xyz);
+	if (result!=true) {		// Unreachable Position!  Try Right arm.		
+		
+		result = do_inverse_kinematics(xyz);
+		if (result==true) {		
+			r_object_grab_feedback.innerHTML = "Grabbed with right arm. "+info;
+			return "Right";
+
+		} else {				// Unreachable with Right!
+			return "out_of_reach";
+		}
+	} else {
+			return "Left";
+	}
+}
+
 function move_to_object()
 {
+	release_object(xyz);
+	
 	object_meshes[object_index].geometry.computeBoundingBox();
 	
+	// FIND CENTER, SMALLEST AXIS, & GRIP WIDTH FOR THE OBJECT:
 	var xyz={};
 	var zero_vec;
 	var box3 			 = object_meshes[object_index].geometry.boundingBox;
 	var smallest_axis 	 = determine_smallest_axis(box3);	
 	var grip_distance    = box3.max[smallest_axis] - box3.min[smallest_axis];
-	zero_vec = box3.getCenter();
+	zero_vec             = box3.getCenter();
 	object_meshes[object_index].localToWorld( zero_vec );
-
+	
 	// TEXT FEEDBACK TO USER:
 	var type 			= object_meshes[object_index].geometry.type;	
 	var zero_world_xyz 	= "<" +zero_vec.x+ ", " +zero_vec.y+ ", "+zero_vec.z+"> ";
@@ -178,43 +201,285 @@ function move_to_object()
 	// FORM THE XYZ POSITOIN:
 	xyz.Approach = inp_approach.value * Math.PI/180.;
 	xyz.grip_position = grip_position;
-
 	xyz.x = zero_vec.x;
 	xyz.y = zero_vec.y;
 	xyz.z = zero_vec.z;
 	xyz.hand = "Left";
-		
+	
+	// INVERSE KINEMATICS:
+	var best_hand = which_hand_is_best(xyz);
 	var result = do_inverse_kinematics(xyz);
-	if (result==false) {
+	if (result!=true) {		// Unreachable Position!  Try Right arm.		
 		r_object_grab_feedback.innerHTML = "Using right arm.";
 		xyz.x = zero_vec.x;
 		xyz.y = zero_vec.y;
 		xyz.z = zero_vec.z;
 		xyz.hand = "Right";
 		result = do_inverse_kinematics(xyz);
-		if (result) {
-			r_rad_servo_angle_set.WristRotate = xyz.WristRotate = determine_wrist_rotate(smallest_axis, r_rad_servo_angle_set.base);		
+		if (result==true) {		
+			r_rad_servo_angle_set.WristRotate = xyz.WristRotate = determine_wrist_rotate(smallest_axis, r_rad_servo_angle_set.Base);		
+			set_servo_angles_rad( r_arm_meshes, r_grip_meshes, arm_sizes, r_rad_servo_angle_set );
+						update_object_position(xyz);
 			r_object_grab_feedback.innerHTML = "Grabbed with right arm. "+info;
+			open_gripper_distance( grip_distance, "Right", r_grip_meshes );			
 			set_sliders(xyz);
-		} else {
+		} else {				// Unreachable with Right!
 			r_object_grab_feedback.innerHTML = "Out of reach!"+type + str_xyz;			
-			open_gripper_distance( grip_distance, r_grip_meshes );
 		}
 	} else {
-			l_rad_servo_angle_set.WristRotate = xyz.WristRotate = determine_wrist_rotate(smallest_axis, l_rad_servo_angle_set.base);
+			l_rad_servo_angle_set.WristRotate = xyz.WristRotate = determine_wrist_rotate(smallest_axis, l_rad_servo_angle_set.Base);
+			set_servo_angles_rad( l_arm_meshes, l_grip_meshes, arm_sizes, l_rad_servo_angle_set );
+						update_object_position(xyz);			
 			r_object_grab_feedback.innerHTML = "Grabbed with Left arm"+info;
-			open_gripper_distance( grip_distance, l_grip_meshes );
+			open_gripper_distance( grip_distance, "Left", l_grip_meshes );
 			set_sliders(xyz);			
 	}
+
+	grab_object   (xyz, xyz.hand);
+		
+	var closest_obj_index = find_closest_object( xyz );
+	console.log("Closest obj=");
+	console.log(closest_obj_index);
 }
 
+// Front/Back is +0 Y direction.  
+// Returns XYZ coordinate.
+function place_in_front_of( mesh, ref_mesh )
+{
+	var dest_xyz = {};
+	mesh.computeBoundingBox();
+	ref_mesh.computeBoundingBox();	
 
+	var ref_length = (ref_mesh.boundingBox.max.y - ref_mesh.boundingBox.min.y);	
+	var Padding = 2;
+	var obj_width  = (mesh.boundingBox.max.z - mesh.boundingBox.min.z);
+	var obj_length = (mesh.boundingBox.max.y - mesh.boundingBox.min.y);	
+	var new_y_position = ref_left_edge - Padding - obj_width/2;
+
+	dest_xyz.x = ref_mesh.position.x;
+	dest_xyz.z = ref_mesh.position.z;	
+	dest_xyz.y = new_y_position;
+	
+	var alignment_edge = 0;
+	if (align=="front")			// toward robot
+	{
+		alignment_edge  = (ref_mesh.position.y-ref_length/2);	// front edge.
+		dest_xyz.y = alignment_edge + obj_length/2;		
+	} else if (align=="back")	
+	{
+		alignment_edge  = (ref_mesh.position.y+ref_length/2);	// back edge.
+		dest_xyz.y = alignment_edge - obj_length/2;
+	} else if (align=="centers")
+	{
+		dest_xyz.y = ref_mesh.position.y;
+	}
+	return dest_xyz;
+}
+
+function place_behind( mesh, ref_mesh )
+{
+	var dest_xyz = {};
+	mesh.computeBoundingBox();
+	ref_mesh.computeBoundingBox();	
+
+	var ref_width  = (ref_mesh.boundingBox.max.z - ref_mesh.boundingBox.min.z);	
+	var ref_length = (ref_mesh.boundingBox.max.y - ref_mesh.boundingBox.min.y);	
+	var Padding = 2;
+	var obj_width  = (mesh.boundingBox.max.z - mesh.boundingBox.min.z);
+	var obj_length = (mesh.boundingBox.max.y - mesh.boundingBox.min.y);	
+	var ref_back_edge = ref_mesh.boundingBox.max.y + ref_length;	
+	var new_y_position = ref_back_edge + Padding + obj_width/2;
+
+	dest_xyz.x = ref_mesh.position.x;
+	dest_xyz.z = ref_mesh.position.z;	
+	dest_xyz.y = new_y_position;
+	
+	var alignment_edge = 0;
+	if (align=="left")			// toward robot
+	{
+		alignment_edge  = (ref_mesh.position.z-ref_width/2);	// front edge.
+		dest_xyz.z  = alignment_edge + obj_width/2;		
+	} else if (align=="right")	
+	{
+		alignment_edge  = (ref_mesh.position.z+ref_width/2);	// back edge.
+		dest_xyz.z  = alignment_edge - obj_width/2;
+	} else if (align=="centers")
+	{
+		dest_xyz.z = ref_mesh.position.z;
+	}
+	return dest_xyz;
+}
+
+/* Sideways is +0 Z direction.  
+align : 	"front"
+		 	"back"
+		 	"centers"
+*/
+function place_left_of( mesh, ref_mesh, align )
+{
+	var dest_xyz = {};
+	mesh.computeBoundingBox();
+	ref_mesh.computeBoundingBox();	
+	
+	var ref_width  = (ref_mesh.boundingBox.max.z - ref_mesh.boundingBox.min.z);
+	var ref_length = (ref_mesh.boundingBox.max.y - ref_mesh.boundingBox.min.y);	
+	var ref_left_edge = ref_mesh.position.z - ref_width/2;
+	var Padding = 2;
+	
+	var obj_width  = (mesh.boundingBox.max.z - mesh.boundingBox.min.z);
+	var obj_length = (mesh.boundingBox.max.y - mesh.boundingBox.min.y);	
+	var new_z_position = ref_left_edge - Padding - obj_width/2;
+
+	dest_xyz.x = ref_mesh.position.x;
+	dest_xyz.z = new_position;
+	
+	var alignment_edge = 0;
+	if (align=="front")			// toward robot
+	{
+		alignment_edge  = (ref_mesh.position.y-ref_length/2);	// front edge.
+		dest_xyz.y = alignment_edge + obj_length/2;		
+	} else if (align=="back")	
+	{
+		alignment_edge  = (ref_mesh.position.y+ref_length/2);	// back edge.
+		dest_xyz.y = alignment_edge - obj_length/2;
+	} else if (align=="centers")
+	{
+		dest_xyz.y = ref_mesh.position.y;
+	}
+	return dest_xyz;
+}
+
+function place_right_of( mesh, ref_mesh )
+{
+	var dest_xyz = {};
+	mesh.computeBoundingBox();
+	ref_mesh.computeBoundingBox();	
+	var ref_width  		= (ref_mesh.boundingBox.max.z - ref_mesh.boundingBox.min.z);
+	var ref_length 		= (ref_mesh.boundingBox.max.y - ref_mesh.boundingBox.min.y);	
+	var ref_right_edge 	= ref_mesh.position.z + ref_width/2;
+	var Padding 		= 2;
+	
+	var obj_width  		= (mesh.boundingBox.max.z - mesh.boundingBox.min.z);
+	var obj_length 		= (mesh.boundingBox.max.y - mesh.boundingBox.min.y);	
+	var new_z_position 	= ref_right_edge + Padding + obj_width/2;
+
+	dest_xyz.x = ref_mesh.position.x;
+	dest_xyz.z = new_position;
+	
+	var alignment_edge = 0;
+	if (align=="front")			// toward robot
+	{
+		alignment_edge  = (ref_mesh.position.y-ref_length/2);	// front edge.
+		dest_xyz.y = alignment_edge + obj_length/2;		
+	} else if (align=="back")	
+	{
+		alignment_edge  = (ref_mesh.position.y+ref_length/2);	// back edge.
+		dest_xyz.y = alignment_edge - obj_length/2;
+	} else if (align=="centers")
+	{
+		dest_xyz.y = ref_mesh.position.y;
+	}
+	return dest_xyz;
+}
+
+function find_closest_object(xyz)
+{
+	var min_index=-1;
+	var min_distance = 100000;
+	var txyz = new THREE.Vector3(xyz.x, xyz.y, xyz.z);
+	
+	object_meshes.forEach( (mesh,index) => {
+		var distance = mesh.position.distanceTo ( txyz );
+		if (distance < min_distance) {
+ 			min_distance = distance;
+ 			min_index = index;
+ 		}
+	});
+	return min_index;
+}
+
+// Left or Right hand holding the object?
+var Lefthand_holding_object = false;
+var grasped_object = -1;
+function update_object_position(newPos)
+{
+	if (grasped_object==-1)	return;
+	object_meshes[grasped_object].position.x = newPos.x;
+	object_meshes[grasped_object].position.y = newPos.y;
+	object_meshes[grasped_object].position.z = newPos.z;
+}
+
+function grab_object(xyz, hand)
+{
+	grasped_object = find_closest_object(xyz);
+	var HAND = hand.toUpperCase();
+	Lefthand_holding_object = HAND;
+}
+function release_object(xyz)
+{
+	grasped_object = -1;
+}
+
+function find_largest_area(xyz)
+{
+	var len;
+	var wid;
+	var area;
+	var max_area=0;
+	var max_index=-1;	
+	
+	object_meshes.forEach(  (m,index) =>{
+		if (m.geometry.type=="BoxGeometry")
+		{
+			m.geometry.computeBoundingBox();
+			len = m.geometry.boundingBox.max.y-m.geometry.boundingBox.min.y;
+			wid = m.geometry.boundingBox.max.z-m.geometry.boundingBox.min.z;
+			area = len * wid;
+			if (area > max_area) {
+				max_area = area;
+				max_index = index;
+			}			
+		}		
+	});
+	return max_index;
+}
+
+/* 
+wall : { start, end, length }
+	dir_vec is a vector in the YZ plane.
+	brick gives width & length & height AND positioning <x,y,z>
+			will be updated in place.
+*/
+function next_brick_position( wall, brick, dir_vec, num_bricks )
+{
+	next_brick.x = next_brick.x + brick.height;	
+	next_brick.y = brick.length * dir_vec.y;
+	next_brick.z = brick.length * dir_vec.z;
+	
+	var len_so_far = num_bricks * brick.length;
+	if (len_so_far >= wall.length) {
+		next_brick.x += brick.height;
+		next_brick.y = wall.start.y;
+		next_brick.z = wall.start.z;
+	}	
+}
+
+function stack_blocks_wall(wall, brick, dir_vec)
+{	
+	next_brick_position( wall, brick, dir_vec, num_bricks );
+	//pick_and_place( stockpile, brick );
+}
+
+function build_brick_wall(wall, brick, dir_vec)
+{
+	
+	next_brick_position( wall, brick, dir_vec, num_bricks );
+	//pick_and_place( stockpile, brick );
+}
 
 make_object_materials();
 construct_objects( object_geoms, object_meshes );
-
 add_objs_to_scene( object_meshes );
-
 create_obj_shadow_meshes(object_meshes);
 
 

@@ -33,13 +33,14 @@ XYZ:<input id='xyz'></input>
 <button id='move_left'  onclick="activate('left')" >Left</button>
 <button id='move_right' onclick="activate('right')">Right</button>
 
-Approach Angle:<input id='approach'></input><br>
+Approach Angle:<input id='approach' value='-90'></input><br>
 </fieldset>
 
 <fieldset>
 <legend>Arm Moves</legend>
 <select id='path_catagory'></input>
 <option>Pick and Place</option>
+<option>Pick and Place Object</option>
 <option>Put hands together</option>
 <option>Move left hand to right</option>
 <option>Move right hand to left</option>
@@ -180,7 +181,7 @@ function robot_space_to_arm_space(arm_meshes, xyz)
 	return xyz_as;
 }
 
-function do_inverse_kinematics(xyz)
+function do_inverse_kinematics( xyz, angle_set )
 {
 	var status;
 	var servo_angles={};
@@ -195,9 +196,10 @@ function do_inverse_kinematics(xyz)
 			l_rad_servo_angle_set = servo_angles;
 			l_rad_servo_angle_set.WristRotate = xyz.wrist_rotate - servo_angles.Base;
 			set_servo_angles_rad( l_arm_meshes, l_grip_meshes, arm_sizes, servo_angles );				
+			update_object_position(xyz);
 			convert_to_degrees( servo_angles, l_deg_servo_angle_set );
 			populate_angle_table(l_deg_servo_angle_set,1);
-		}
+		} else return status;
 	} else if (HAND=="RIGHT") {
 		tmp_xyz = robot_space_to_arm_space( r_arm_meshes, xyz );
 		status  = INV_Grip_XYZ_To_Angles( tmp_xyz, servo_angles, xyz.grip_position );		
@@ -206,9 +208,10 @@ function do_inverse_kinematics(xyz)
 			r_rad_servo_angle_set = servo_angles;
 			r_rad_servo_angle_set.WristRotate = xyz.wrist_rotate - servo_angles.Base;
 			set_servo_angles_rad( r_arm_meshes, r_grip_meshes, arm_sizes, servo_angles );
+			update_object_position(xyz);
 			convert_to_degrees( servo_angles, r_deg_servo_angle_set );			
 			populate_angle_table(r_deg_servo_angle_set,2);
-		}
+		} else return status;
 	}
 	return true;
 }
@@ -419,15 +422,14 @@ function do_inverse_kinematics(xyz)
 		} else if (key == 'T') {			r_deg_servo_angle_set.Elbow -= 2.0;
 		} else if (key == 'r') {			r_deg_servo_angle_set.Wrist += 2.0;
 		} else if (key == 'R') {			r_deg_servo_angle_set.Wrist -= 2.0;
-		} else if (key == 'x') {	l_grip_fraction += 0.1;		l_grip_fraction = open_gripper( l_grip_fraction, l_grip_meshes );	
-		} else if (key == 'X') {	l_grip_fraction -= 0.1;		l_grip_fraction = open_gripper( l_grip_fraction, l_grip_meshes );	
-		} else if (key == 'v') {	r_grip_fraction += 0.1;		r_grip_fraction = open_gripper( r_grip_fraction, r_grip_meshes );	
-		} else if (key == 'V') {	r_grip_fraction -= 0.1;		r_grip_fraction = open_gripper( r_grip_fraction, r_grip_meshes );	
-		} else if (key == 'c') {	l_deg_servo_angle_set.WristRotate -= 2.0;	
-		} else if (key == 'C') {	l_deg_servo_angle_set.WristRotate -= 2.0;	
+		} else if (key == 'x') {	l_grip_fraction += 0.1;		l_grip_fraction = open_gripper( l_grip_fraction, "Left", l_grip_meshes );	
+		} else if (key == 'X') {	l_grip_fraction -= 0.1;		l_grip_fraction = open_gripper( l_grip_fraction, "Left", l_grip_meshes );	
+		} else if (key == 'v') {	r_grip_fraction += 0.1;		r_grip_fraction = open_gripper( r_grip_fraction, "Left", r_grip_meshes );	
+		} else if (key == 'V') {	r_grip_fraction -= 0.1;		r_grip_fraction = open_gripper( r_grip_fraction, "Left", r_grip_meshes );	
+		} else if (key == 'c') {	l_deg_servo_angle_set.WristRotate -= 2.0;
+		} else if (key == 'C') {	l_deg_servo_angle_set.WristRotate += 2.0;	
 		} else if (key == 'b') {	r_deg_servo_angle_set.WristRotate -= 2.0;	
-		} else if (key == 'B') {	r_deg_servo_angle_set.WristRotate -= 2.0;	
-
+		} else if (key == 'B') {	r_deg_servo_angle_set.WristRotate += 2.0;
 		} else if (key == ' ') {
 			l_deg_servo_angle_set.Base 	= 0.0;
 			l_deg_servo_angle_set.Shoulder = 0.0;
@@ -439,7 +441,7 @@ function do_inverse_kinematics(xyz)
 			r_deg_servo_angle_set.Elbow = 0.0;
 			r_deg_servo_angle_set.Wrist = 0.0;			
 		}
-		set_servo_angles_degrees( "left", l_deg_servo_angle_set );
+		set_servo_angles_degrees( "left",  l_deg_servo_angle_set );
 		set_servo_angles_degrees( "right", r_deg_servo_angle_set );		
 		populate_angle_table(l_deg_servo_angle_set, 1);
 		populate_angle_table(r_deg_servo_angle_set, 2);

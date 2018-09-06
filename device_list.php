@@ -65,17 +65,19 @@
 			$found=FALSE;
 			$new_data=false;
 			$data=false;
-			$full_data = false;
+			$full_data = "";
 
 			$i=0;
 			do {
 				$new_data=false;
 				$data = fgets($fd, 4096);
+				var_dump($data);
+				echo "<br>";
 				
 				if ($data)
 				{  
 					$full_data .= $data ;
-					$data = " ";
+					$data = "";
 					$new_data=true;
 				}
 				$i++;
@@ -83,8 +85,8 @@
 			} while ($new_data ||  ($i<10) );
 
 			$full_data = trim($full_data, ">");
-			//echo "<br>FullData=";
-			//var_dump($full_data);
+			echo "FullData=";
+			var_dump($full_data);	echo "<br>";
 			
 			$found = strpos( $full_data, "ype:");
 			if ($found==FALSE)
@@ -109,7 +111,7 @@
 		foreach ($deviceInfo as $dev) 
 		{
 			//var_dump( $dev );
-			//echo "<br>". $deviceInfo[$i]['path'] ."   ";
+			echo "<br>". $deviceInfo[$i]['path'] ."   ";
 			
 			$deviceInfo[$i]['type']       =  QueryDeviceType( $deviceInfo[$i]['filedescriptor'] );
 			$deviceInfo[$i]['name']       =  GetDeviceName( $deviceInfo[$i]['filedescriptor'] );			

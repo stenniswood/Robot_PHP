@@ -429,6 +429,26 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 			new_entry["action"] = nd_sel.selectedOptions[0].innerHTML;
 			new_entry["action"] += " " + param.value;
 			new_entry["device"] = "";
+			
+			var len = seq_table.rows.length;
+			var row = seq_table.rows[len-1];
+			//var action = document.getElementById("new_directive");
+			var words = nd_sel.selectedOptions[0].innerHTML;
+			if (words == "range") {
+				var val = param.value;
+				var words = val.split(" ");
+				var var_name = words[0].replace(/^\$/g,"");
+				var range_str = words[1] +", "+ words[2] +", "+ words[3] +", "+words[4];				
+				
+				var new_entry = {};
+				new_entry["board_name"] = "n.a. internal";
+				new_entry["model"]  	= " ";		
+				new_entry["name"]   	= "M_"+var_name;
+				new_entry["response_index"]  = "n.a.";
+				new_entry["eliciting_cmd"]   = "range("+var_name+", "+range_str+")";
+				new_entry["signal_type"]     = "internal variable";
+				add_user_variable( new_entry );
+			}
 			break;
 		case "System":			// System
 			new_entry["action"] = system_sel.selectedOptions[0].innerHTML;
@@ -697,14 +717,8 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 				// x is y as z is to w
 				//(value - src_min)/range_src = (dest_val-dest_min)/range_dest;
 				dest_val = range_dest*(value - src_min)/range_src+dest_min;
-				var new_entry = {};
-				new_entry["board_name"] = "n.a. internal";
-				new_entry["model"]  	= "n.a. internal";		
-				new_entry["name"]   	= "Mapped_"+var_name;
-				new_entry["response_index"]  = "n.a. internal";
-				new_entry["eliciting_cmd"]   = "n.a. internal";
-				new_entry["signal_type"]     = "internal variable";
-				add_user_variable( new_entry );
+				
+				
 				break;
 		case "if_less_than":	// Maps input value to new range.  Can be inverse proportion.
 				var is_0_var = (words[0][0]=='$');
@@ -794,7 +808,8 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		case "l_arm_xyz"		:	var xyz = {};		
 				xyz['x']=words[1]; xyz['y']=words[2]; xyz['z']=words[3];				
 				INV_XYZ_To_Angles( xyz, servo_angles );
-				set_servo_angles_rad( l_arm_meshes, l_grip_meshes, arm_sizes, angle_set );
+				set_servo_angles_rad( l_arm_meshes, l_grip_meshes, arm_sizes, angle_set );				
+				update_object_position(xyz);
 				break;
 		case "l_arm_gripper":				break;
 		case "l_arm_wrist"	:				break;
@@ -806,6 +821,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 				xyz['x']=words[1]; xyz['y']=words[2]; xyz['z']=words[3];
 				INV_XYZ_To_Angles( xyz, servo_angles );
 				set_servo_angles_rad( r_arm_meshes, r_grip_meshes, arm_sizes, angle_set );
+				update_object_position(xyz);
 				break;
 		case "r_arm_gripper":				break;
 		case "r_arm_wrist"	:				break;

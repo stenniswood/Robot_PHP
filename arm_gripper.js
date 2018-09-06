@@ -124,10 +124,16 @@ function open_gripper_distance( distance_between, grip_meshes )
 	return "done";
 }
 
-function open_gripper( fraction, grip_meshes )
+function open_gripper( fraction, hand, grip_meshes )
 {
 	if (fraction>1.0)  fraction = 1.0;
 	if (fraction<=0.0) fraction = 0.0;
+	
+	var HAND = hand.toUpperCase();
+	if (HAND=="LEFT")
+		l_rad_servo_angle_set.Gripper = fraction;
+	else 
+		r_rad_servo_angle_set.Gripper = fraction;
 	
 	var distance_between = (grip_sizes.joiner_length-grip_sizes.grip1_width-grip_sizes.grip2_width) * fraction;
 	
