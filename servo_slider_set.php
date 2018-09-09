@@ -102,8 +102,8 @@ function actuate_hardware_servos()
 	{
 		all_servo_str += "servo "+(i-1)+" "+s_servo_pos[i].value+"\r\n";
 	}
-	var dev = load_cell_boards[0];
-	usb_send_ajax("/dev/ttyACM1", all_servo_str)
+	var dev = io_expander_boards[0];
+	usb_send_ajax(dev.path, all_servo_str)
 }
 
 </script>	

@@ -13,7 +13,7 @@
 
 	<tr>
 	<td><input  id="NewSignalName"></input></td>
-	<td><select id="SignalBoardSelection"><options></options></select></td>
+	<td><select id="SignalBoardSelection"></select></td>
 	<td><select id="Eliciting_cmd"></select></td>
 	<td><input  id="ResponseIndex"></input></td>
 	<td><select id='signal_type'>
@@ -47,11 +47,42 @@
 	var var_nam      = document.getElementById( "NewSignalName" );
 	var response_idx = document.getElementById( "ResponseIndex"   );
 	var period_inp   = document.getElementById( "SignalTypeParameter"  );
+	var eliciting_cmd_sel   = document.getElementById( "Eliciting_cmd"  );
+
 	
+	var drive_five_cmds = [ "PWM", "PID", "read status", "read current", "read speed", "read position",
+	"stop", "forward", "backward", "spin", "set wheel diameter", "set wheel separation", "set counts_per_rev"];
+	var eye_cmds = [ "look left", "look right", "look up", "look down", "straight", "look at",
+	"left look at", "right look at", "close eyes", "open eyes", "blink", "roll eyes", "scan horizon",
+	"scan up down"];
+
+	var load_cell_cmds = [ "send", "stream", "stop", "tare", "status" ];	
+	var io_expander_cmds = [ "send", "stream", "mask_ad", "mask_di", "servo", "dwrite", "dsend", "scan" ];
+
+
 	init_Inputvars_datasets();
 	populate_var_table();
 	populate_all_devices_select();
-	
+
+function get_all_device_index(path)
+{
+	var retval = -1;
+	all_devices.forEach( (dev,index ) => {
+		if (dev.path == path)
+		{
+			retval = index;
+		}		
+	});
+	return retval;
+}
+
+board_sel.onchange = function() { 
+	var str = board_sel.value;
+	var items = str.split(",");
+	populate_cmd_select( items[1] );
+};
+
+
 	function find_input_variable(name)
 	{
 		var retval = -1;
@@ -61,9 +92,54 @@
 		});
 		return retval;
 	}
+	
+	function populate_cmd_select(model)
+	{
+		while (eliciting_cmd_sel.length)
+			eliciting_cmd_sel.remove(0);
+			
+		var opt;
+		switch(model)
+		{
+		case "DriveFive" : 
+			drive_five_cmds.forEach( (command,index) => {
+				opt = document.createElement('option');
+				opt.text = command;
+				eliciting_cmd_sel.add(opt);			
+			});
+			break;
+		case "Load cell" : 
+			load_cell_cmds.forEach( (command,index) => {
+				opt = document.createElement('option');
+				opt.text = command;
+				eliciting_cmd_sel.add(opt);			
+			});
+			break;
+		case "Ani-eyes" : 
+			eye_cmds.forEach( (command,index) => {
+				opt = document.createElement('option');
+				opt.text = command;
+				eliciting_cmd_sel.add(opt);			
+			});
+			break;
+		case "IO Expander" : 
+			io_expander_cmds.forEach( (command,index) => {
+				opt = document.createElement('option');
+				opt.text = command;
+				eliciting_cmd_sel.add(opt);			
+			});
+			break;
+
+		default: break;
+		}
+	}
+
 	function populate_all_devices_select()
 	{
 		var opt;
+		
+		//board_sel.remove();
+		
 		all_devices.forEach( (variable,index) => {
 			opt = document.createElement('option');
 			opt.text = variable['name'] +","+ variable['type'] +","+ variable['path'];
@@ -125,10 +201,9 @@
 			//   so subract the header and button rows. so row 1 ==> InputVars[0]	
 			
 			var graph_check = "<input type='checkbox' onclick='show_on_graph(this,"+index+")' value=\"Graph\">Graph</input>";
-			var read_now_b  = "<button id='read_now' onclick='elicit_response("+index+")' >Read Now</button>";
-			var delete_b = "<img src='icons/redcross.png' alt='X' onclick='handle_delete_input()' style='width:20px;height:20px;'>";
-			cell5.innerHTML = graph_check+read_now_b+delete_b;
-			
+			var read_now_b  = "<button id='read_now' onclick='elicit_response("+index+");' >Read Now</button>";
+			var delete_b = "<img src='icons/redcross.png' alt='X' onclick='handle_delete_input(event,"+index+")' style='width:20px;height:20px;'>";
+			cell5.innerHTML = graph_check+read_now_b+delete_b;			
 		});
 	}
 	
@@ -136,14 +211,17 @@
 	{	
 		var xhttp = new XMLHttpRequest();
 		xhttp.onreadystatechange = function() {
-			if (this.readyState == 4 && this.status == 200) {
+			if (this.readyState == 4 && this.status == 200) 
+			{
 			  var results = this.responseText.split("\t");
 			  var pindex  = InputVars[InputVarIndex]['response_index'];
-			  InputVars[InputVarIndex]['latest_value'] = results[pindex];
 			  var str = results[pindex].trim();
+			  InputVars[InputVarIndex]['latest_value'] = parseFloat(str);
+
 			  // Add to Dataset : 
-			 // newDataset.data.push(  );
 			  add_data( InputVarIndex, str );  
+			  //process_all_dependant_variables();
+			  process_dependant_vars( InputVarIndex );		// only those which are dependant on this var.
 			}
 		};  
 	
@@ -170,7 +248,7 @@
 			if ( splitted[0]=="Periodic" )
 			{			
 				InputVars[index]['interval_timer'] = setInterval( 
-					function() { elicit_response( index );  }, splitted[1] );
+					function() { elicit_response( index );  }, parseInt(splitted[1]) );
 			}
 		});
 	}
@@ -222,9 +300,48 @@
 			add_user_variable( new_entry );	
 	}
 	
-	function handle_delete_input()
+	function process_dependant_vars( IndependantVarIndex )
 	{
+		// LOOP THRU ALL VARIABLES :
+		for (i=0; i<InputVars.length; i++)
+		{
+			// FOR EACH "internal variable" : 
+			if (  (InputVars[i].signal_type  == "internal dependant") && 
+				  (InputVars[i].eliciting_cmd == InputVars[IndependantVarIndex].name) )
+			{				
+				perform_directive( InputVars[i].response_index, i );
+				// Now recursively update any variables dependant on this dependant var.
+				process_dependant_vars( i );
+			}
+		}		
 		
+	}
+	function process_all_dependant_variables(  )
+	{
+		// LOOP THRU ALL VARIABLES :
+		for (i=0; i<InputVars.length; i++)
+		{
+			// FOR EACH "internal variable" : 
+			if (InputVars[i].signal_type=="internal dependant")
+			{				
+				//if (InputVars[i].eliciting_cmd == independantVar)
+				//{
+				perform_directive(InputVars[i].response_index, i);
+				//}
+			}
+		}		
+	}
+	
+	function handle_delete_input(event,index)
+	{
+		var line_index = index; //event.currentTarget; //.selectedOptions[0].rowIndex;
+
+		// Remove:
+		hide_on_graph( line_index );
+		// Remove:
+		InputVars.splice(line_index, 1 );
+				
+		populate_var_table();		
 	}
 	
 </script>

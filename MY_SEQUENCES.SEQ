@@ -1,1 +1,3 @@
-start,Command,,IO Expander,servo 0 120,,
+{"label":"start","type":"Command","model":"Drive Five","action":"PWM v$C_M_Range1 w$C_M_Range1","board_name":"no response","device":"\/dev\/ttyUSB1"}
+{"label":" ","type":"Directive","model":"","action":"delay 500","board_name":"undefined","device":" "}
+{"label":" ","type":"Directive","model":"","action":"goto start","board_name":"undefined","device":""}

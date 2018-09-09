@@ -62,7 +62,7 @@ allstop.onclick = function()
  //updatePWMs();	
  
  // TEMPORARY FOR DEBUG ONLY:
- RobotAjax("stop");
+ //RobotAjax("stop");
 /*  var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
@@ -115,16 +115,23 @@ function updatePWMs()
       this.responseText;
     }
   };
-  var str = "text=pwm v"+(vslider.value/100.0).toFixed(2);
+
+  var str = "pwm v"+(vslider.value/100.0).toFixed(2);
   str += " w" + (wslider.value/100.0 ).toFixed(2);
   str += " x" + (xslider.value/100.0 ).toFixed(2);  
   str += " y" + (yslider.value/100.0 ).toFixed(2);
   str += " z" + (zslider.value/100.0 ).toFixed(2);
-  xhttp.open("GET", "shm_joy.php?"+str, true);
-  xhttp.send("wduty=1.0");
+
+	var payload;
+	payload = "path="+drive_five_boards[1].path;
+	payload += "&data="+str;
+
+	xhttp.open("POST", "usb_send_receive.php", true);		 
+	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhttp.send(payload);
 }
 
-function getDeviceType() 
+/*function getDeviceType() 
 {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
@@ -136,5 +143,5 @@ function getDeviceType()
   var str = "device type";
   xhttp.open("GET", "shm_joy.php?"+str, true);
   xhttp.send("wduty=1.0");
-};
+};*/
 

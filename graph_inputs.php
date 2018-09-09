@@ -1,7 +1,8 @@
 
 <canvas id="myChart" class="graphs" width="500" height="200" style="background-color:#FFFFC1" ></canvas>
 
-<script src="../Chart.js-2.7.2/dist/Chart.bundle.js"></script>
+<!-- <script src="../Chart.js-2.7.2/dist/Chart.bundle.js"></script> -->
+<script src="../node_modules/chart.js/dist/Chart.bundle.js"></script>
 
 <script>
 var ctx = document.getElementById("myChart").getContext('2d');
@@ -98,14 +99,16 @@ function add_data(InputVarIndex, newValue)
 		if (dataset.data.length > max)
 			max = dataset.data.length;
 	} );
+	max = config.data.labels.length;
 	
+	// 
 	if (config.data.datasets.length > 0) 
 	{		
+		InputVars[InputVarIndex]['dataset'].data.push(newValue);	
 		var label = InputVars[InputVarIndex]['dataset'].data.length;
-		if (label>=max)
+		if (label>max)
 			config.data.labels.push(label);
 
-		InputVars[InputVarIndex]['dataset'].data.push(newValue);
 		window.myChart.update();
 	}
 }

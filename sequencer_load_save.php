@@ -2,7 +2,7 @@
 
 	function init_junk_sequnece()	
 	{
-		global $MicroSeq;
+/*		global $MicroSeq;
 		
 		$MicroSeq[0]["device"]  = "/dev/ttUSB0";
 		$MicroSeq[0]["type"]    = "Command";
@@ -25,7 +25,7 @@
 
 		$MicroSeq[4]["device"]  = "n.a.";
 		$MicroSeq[4]["type"]    = "Directive";
-		$MicroSeq[4]["action"]  = "goto 5";  
+		$MicroSeq[4]["action"]  = "goto 5";  */
 	}
 
 	function save_sequence($fname, $MicroSeqTable ) 
@@ -39,13 +39,8 @@
 		}
 		foreach ($MicroSeqTable as $step)
 		{
-			$line  = $step["label"] .",";
-			$line .= $step["type"] .",";
-			$line .= $step["board_name"] .",";			
-			$line .= $step["model"] .",";
-			$line .= $step["action"] .",";
-			$line .= $step["device"].",";
-			$line .= $step["params"]."\n";	
+			$line = json_encode( $step );
+			$line .= "\r\n";
 			fwrite($fd, $line );
 		}
 		fclose($fd);
@@ -70,21 +65,14 @@
 		do
 		{
 			$line = fgets( $fd );
-			//var_dump($line);		
-			//echo "<br>";
 			if ($line) {
-				$tmpAry = explode(",", $line );
-				$MicroSeq[$i]["label"]  = $tmpAry[0];
-				$MicroSeq[$i]["type"]   = $tmpAry[1];
-				$MicroSeq[$i]["model"]  = $tmpAry[2];			
-				$MicroSeq[$i]["action"] = $tmpAry[3];				
-				$MicroSeq[$i]["device"] = $tmpAry[4];
-				$MicroSeq[$i]["params"] = $tmpAry[5];
+				$MSeq[$i] = json_decode( $line, TRUE );				
 				$i++;
 			}
 		} while (!feof($fd));		
+
 		fclose($fd);
-		return;
+		return $MSeq;
 	}
 	
 	function save_variables($fname, $InputVars ) 

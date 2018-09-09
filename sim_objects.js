@@ -478,9 +478,9 @@ function build_brick_wall(wall, brick, dir_vec)
 }
 
 make_object_materials();
-construct_objects( object_geoms, object_meshes );
-add_objs_to_scene( object_meshes );
-create_obj_shadow_meshes(object_meshes);
+//construct_objects( object_geoms, object_meshes );
+//add_objs_to_scene( object_meshes );
+//create_obj_shadow_meshes(object_meshes);
 
 
 

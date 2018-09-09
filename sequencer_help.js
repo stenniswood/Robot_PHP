@@ -192,11 +192,17 @@ function init_Directive_help()
 	help_context["range"] 		= "Map a signal to a new range. Creates new signal preface with M_";
 	help_params ["range"] 		= "$SRC_VAR_NAME SRC_MIN SRC_MAX DEST_MIN DEST_MAX";
 
-	help_context["if_less_than"] 	= "Pause sequence for a while";
-	help_params ["if_less_than"] 	= "number of milliseconds";
+	help_context["control"] 		= "Limit a signal to a minimum and maximum value. ";
+	help_params ["control"] 		= "$SRC_VAR_NAME ($)MIN ($)MAX ";
 
-	help_context["if_greater_than"] = "Pause sequence for a while";
-	help_params ["if_greater_than"] = "number of milliseconds";
+	help_context["if_less_than"] 	= "Compare 2 variables and branch if the first is less than 2nd.";
+	help_params ["if_less_than"] 	= "$FIRST $SECOND label";
+
+	help_context["if_greater_than"] = "Compare 2 variables and branch if the first is greater than 2nd.";
+	help_params ["if_greater_than"] = "$FIRST $SECOND label";
+
+	help_context["if_equal"] 	= "Compare 2 variables and branch if the first is equal to the 2nd.";
+	help_params ["if_equal"] 	= "$FIRST $SECOND label";
 
 
 	cmd_help["Directive"]	= help_context;

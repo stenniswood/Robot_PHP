@@ -61,7 +61,8 @@
   <td><input type="radio" id="free_wheels" name="wheels" value="male"> Free<br></td>
   <td width="150"><p> <?php echo $MotorCounts[0]; ?> </p></td>
   </tr>
-<tr><td>W</td><td><input type="range" min="-100" max="100" value="0" class="slider" id="w"></td><td><span id="w_pos">WPos</span></td>
+<tr><td>W</td>
+<td><input type="range" min="-100" max="100" value="0" class="slider" id="w"></td><td><span id="w_pos">WPos</span></td>
   <td><button class="stop" id="wstop"  >Stop</button></td>
   <td><p> <?php echo $MotorCounts[1]; ?> </p></td>
   </tr>

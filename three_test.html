@@ -14,11 +14,17 @@
 		<script src="js/three.js"></script>
 		<script src="three.js/examples/js/controls/OrbitControls.js"></script>
 		<script src="three.js/examples/js/objects/ShadowMesh.js"></script>
+		<script src="./three.js/examples/js/loaders/ColladaLoader.js" ></script>
 		
 		<script>
 			// Our Javascript will go here.
 			var scene = new THREE.Scene();
-			var camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 5000 );
+			var camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 400 );
+	camera.zoom = 30;
+	camera.position.set(10, 0, 0);
+	camera.lookAt(scene.position);
+	camera.updateProjectionMatrix();
+	scene.add(camera);
 
 			var renderer = new THREE.WebGLRenderer();
 			renderer.setSize( window.innerWidth, window.innerHeight );
@@ -28,9 +34,24 @@
 	controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
 	controls.dampingFactor = 0.25;
 	controls.screenSpacePanning = false;
-	controls.minDistance = 100;
-	controls.maxDistance = 500
-	controls.maxPolarAngle = Math.PI / 2;
+	controls.minDistance = 1;
+	controls.maxDistance = 800;
+	controls.maxPolarAngle = Math.PI ;
+
+
+	// FOLDING CHAIR & IMPORTED OBJECTS:
+	var loader = new THREE.ColladaLoader();
+    loader.load('FOLDING CHAIR.dae',function colladaReady( collada ){
+        var player = collada.scene;
+        player.position.x = 0;
+        player.position.y = 0;
+        player.position.z = 0;
+	//	player.children[2].geometry.computeBoundingBox();
+	//	player.children[3].geometry.computeBoundingBox();
+        //skin = collada.skins [ 0 ];
+        scene.add( player );
+        });
+
 
 			// CUBE:
 //			var geometry = new THREE.BoxGeometry( 1, 1, 1 );
@@ -51,7 +72,7 @@
 				pointLight.position.set( 0, 100, 90 );
 				scene.add( pointLight );
 				
-			camera.position.z = 50;
+			camera.position.z = 0;
 			
 			function animate() {
 				requestAnimationFrame( animate );
@@ -63,7 +84,8 @@
 			}
 
 	var loader = new THREE.FontLoader();
-	loader.load( 'three.js/examples/fonts/helvetiker_bold.typeface.json', function ( font ) {
+	loader.load( 'three.js/examples/fonts/helvetiker_bold.typeface.json', 
+	function ( font ) {
 		var textGeo = new THREE.TextGeometry( 'Beyond Kinetics.js!', {
 			font: font,
 			size: 10,
@@ -136,7 +158,7 @@
 
 		</script>
 
-	<script src="sim_bipedal.js"> </script>
+<!-->	<script src="sim_bipedal.js"> </script> -->
 
 		
 	</body>

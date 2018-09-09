@@ -105,8 +105,10 @@ XYZ is to :
 <?php include "xyz_sliders.php" ?>
 </fieldset>
 
+<script src="./three.js/examples/js/loaders/ColladaLoader.js" ></script>
 
 <?php include "arm_presets.php" ?>
+
 
 <script>
 
@@ -233,16 +235,17 @@ function do_inverse_kinematics( xyz, angle_set )
 
 	// Our Javascript will go here.
 	var scene = new THREE.Scene();
-	var camera = new //THREE.PerspectiveCamera( 120, window.innerWidth / window.innerHeight, 0.1, 5000 );
-					THREE.OrthographicCamera(
+	var camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 5000 );
+//	var camera = new THREE.PerspectiveCamera( 120, window.innerWidth / window.innerHeight, 0.1, 5000 );
+/*					THREE.OrthographicCamera(
 						  canvas.width / -2,
 						  canvas.width / 2,
 						  canvas.height / 2,
-						  canvas.height / -2, -500, 1000);
+						  canvas.height / -2, -500, 1000);*/
 
 	camera.up.set(1, 0, 0); 
-	camera.zoom = 7;
-	camera.position.set(10, 0, 0);
+	camera.zoom = 30;
+	camera.position.set(10, 30, 0);
 	camera.lookAt(scene.position);
 	camera.updateProjectionMatrix();
 	scene.add(camera);
@@ -252,9 +255,9 @@ function do_inverse_kinematics( xyz, angle_set )
 	controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
 	controls.dampingFactor = 0.25;
 	controls.screenSpacePanning = false;
-	controls.minDistance = 100;
-	controls.maxDistance = 500
-	controls.maxPolarAngle = Math.PI / 2;
+	controls.minDistance = 1;
+	controls.maxDistance = 4000
+	controls.maxPolarAngle = Math.PI ;/// 2;
 		
 	
 	  const size = 20
@@ -294,10 +297,10 @@ function do_inverse_kinematics( xyz, angle_set )
 		//dirLight.shadowCameraVisible = true;
 		scene.add( dirLight );
 		
-	/*	var pointLight = new THREE.PointLight( 0xffffff, 1.5 );
+		var pointLight = new THREE.PointLight( 0xffffff, 1.5 );
 		pointLight.position.set( 90, 100, 0 );
 		scene.add( pointLight );
-*/
+
 /*		var pointLight2 = new THREE.PointLight( 0xffffff, 1.5 );
 		pointLight2.position.set( 90, -100, 0 );
 		scene.add( pointLight2 );
@@ -308,11 +311,11 @@ function do_inverse_kinematics( xyz, angle_set )
 */
 </script>
 <script src="sim_objects.js"></script>
-
 <script src="arm_construction.js"></script>
 <script src="arm_gripper.js"></script>
-<script src="arm_servos.js"></script>		
-
+<script src="arm_servos.js"></script>	
+	
+<script src="sim_bipedal.js"> </script>
 
 <script>
 
@@ -338,8 +341,67 @@ function do_inverse_kinematics( xyz, angle_set )
 	set_servo_angles_degrees( "left",  l_deg_servo_angle_set );
 	set_servo_angles_degrees( "right", r_deg_servo_angle_set );
 		
+	// FOLDING CHAIR & IMPORTED OBJECTS:
+	var loader = new THREE.ColladaLoader();
+    loader.load('FOLDING CHAIR.dae',function colladaReady( collada ){
+        var chair = collada.scene;
+        chair.children[0].visible = false;
+        chair.children[1].visible = false;        
+        chair.children[2].visible = false;        
+        chair.children[4].visible = false;                        
+        chair.position.x = -10;
+        chair.position.y = 0;
+        chair.position.z = 0;   
+        chair.rotation.z = -Math.PI /2;     
+        chair.scale.set( 7, 7, 7 );
+	//	player.children[2].geometry.computeBoundingBox();
+		//chair.children[3].geometry.computeBoundingBox();
+        //skin = collada.skins [ 0 ];
+        scene.add( chair );
+        });
+
+/*    loader.load('./Senza/model.dae',function colladaReady( collada ){
+        var door = collada.scene;
+*        door.children[0].visible = false;
+        door.children[1].visible = false;        
+        door.children[2].visible = false;        
+        door.children[4].visible = false;                        
+        door.position.x = -10;
+        door.position.y = 20;
+        door.position.z = -100;   
+        door.rotation.x = +Math.PI;     
+        door.rotation.y = +Math.PI /2;             
+        door.scale.set( 1.5, 1.5, 1.5 );
+	//	player.children[2].geometry.computeBoundingBox();
+		//door.children[3].geometry.computeBoundingBox();
+        //skin = collada.skins [ 0 ];
+        //scene.add( door );
+        });*/
+
+//	var d_texture = new THREE.TextureLoader().load( "./textures/door_carmelle.jpg" );
+	var d_texture = new THREE.TextureLoader().load( "./textures/door_milano_luna.jpg" );
+		
+	//d_texture.rotation = Math.PI/2;
+	
+	//d_texture.wrapS = THREE.RepeatWrapping;
+	//d_texture.wrapT = THREE.RepeatWrapping;
+	//d_texture.repeat.set( 4, 4 );
+	var door_depth = 0.5;
+	var door_width = 36;
+	var door_height = 84;
+	door_geom	= new THREE.BoxGeometry( door_depth,  door_height, door_width );
+	door_geom.translate(0, door_height/2, 0);
+	var door_material = new THREE.MeshBasicMaterial( { map: d_texture } );
+	var door_mesh     = new THREE.Mesh( door_geom, door_material );
+	door_mesh.position.x = -10;
+	door_mesh.scale.set(0.8, 0.8, 0.8);
+	door_mesh.rotation.y= Math.PI;
+	door_mesh.rotation.z= Math.PI/2;	
+	scene.add(door_mesh);
+			
 
 	var texture = new THREE.TextureLoader().load( "textures/sponge_wall_texture.jpg" );
+	
 //	texture.wrapS = THREE.RepeatWrapping;
 //	texture.wrapT = THREE.RepeatWrapping;
 //	texture.repeat.set( 4, 4 );
@@ -358,7 +420,7 @@ function do_inverse_kinematics( xyz, angle_set )
 	shadowPlane.castShadow = false;
 	shadowPlane.renderOrder = - 1;
 		
-	var l = (get_total_arm_length() + 15)*2;
+	var l = (get_total_arm_length() + 15)*10;
 	var groundGeometry = new THREE.BoxBufferGeometry( l, 0.01, l );
 //	var groundMaterial = new THREE.MeshLambertMaterial( { color: 'rgb(0,130,0)' } );
 	var groundMaterial = new THREE.MeshBasicMaterial( { map: texture } );	
@@ -367,7 +429,7 @@ function do_inverse_kinematics( xyz, angle_set )
 	groundMesh.rotation.z = 90/180.*Math.PI;
 	scene.add( groundMesh );
 
-	function update_shadows(arm_meshes, grip_meshes)
+	function update_shadows(arm_meshes, grip_meshes, leg_meshes)
 	{
 		arm_meshes.luaShadow.update( shadowPlane, lightPosition4D );
 		arm_meshes.leaShadow.update( shadowPlane, lightPosition4D );
@@ -380,13 +442,19 @@ function do_inverse_kinematics( xyz, angle_set )
 		grip_meshes.jShadow.update( shadowPlane, lightPosition4D );
 		grip_meshes.wShadow.update( shadowPlane, lightPosition4D );				
 		
+		leg_meshes.luaShadow.update( shadowPlane, lightPosition4D );
+		leg_meshes.leaShadow.update( shadowPlane, lightPosition4D );
+		leg_meshes.llaShadow.update( shadowPlane, lightPosition4D );
+		leg_meshes.lwmShadow.update( shadowPlane, lightPosition4D );
+		leg_meshes.lwaShadow.update( shadowPlane, lightPosition4D );
+
 	}
 		
 	function animate() {
 		requestAnimationFrame( animate );
 		controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
-		update_shadows(l_arm_meshes, l_grip_meshes);
-		update_shadows(r_arm_meshes, r_grip_meshes);
+		update_shadows(l_arm_meshes, l_grip_meshes, l_leg_meshes );
+		update_shadows(r_arm_meshes, r_grip_meshes, r_leg_meshes );
 		smeshes.forEach( (variable,index) => {
 			variable.update( shadowPlane, lightPosition4D);
 		});
@@ -400,10 +468,13 @@ function do_inverse_kinematics( xyz, angle_set )
 	
 	var l_grip_fraction = 0.5;
 	var r_grip_fraction = 0.5;
-	
+		var squat_angle = 0;
+			
 	document.addEventListener("keydown", onDocumentKeyDown, false);
 	function onDocumentKeyDown(event) {
-	
+		var delta = 2.0 *Math.PI/180.;
+
+		
 		var key = event.key;
 		if (key == 'd') 	   {			l_deg_servo_angle_set.Base += 2.0;
 		} else if (key == 'D') {			l_deg_servo_angle_set.Base -= 2.0;
@@ -430,6 +501,38 @@ function do_inverse_kinematics( xyz, angle_set )
 		} else if (key == 'C') {	l_deg_servo_angle_set.WristRotate += 2.0;	
 		} else if (key == 'b') {	r_deg_servo_angle_set.WristRotate -= 2.0;	
 		} else if (key == 'B') {	r_deg_servo_angle_set.WristRotate += 2.0;
+
+		} else if (key == 'y') {			l_rad_leg_angle_set.Hip   += delta;
+		} else if (key == 'Y') {			l_rad_leg_angle_set.Hip   -= delta;
+		} else if (key == 'h') {			l_rad_leg_angle_set.Knee  += delta;
+		} else if (key == 'H') {			l_rad_leg_angle_set.Knee  -= delta;
+		} else if (key == 'n') {			l_rad_leg_angle_set.Ankle += delta;
+		} else if (key == 'N') {			l_rad_leg_angle_set.Ankle -= delta;
+
+		} else if (key == 'u') {			r_rad_leg_angle_set.Hip   += delta;
+		} else if (key == 'U') {			r_rad_leg_angle_set.Hip   -= delta;
+		} else if (key == 'j') {			r_rad_leg_angle_set.Knee  += delta;
+		} else if (key == 'J') {			r_rad_leg_angle_set.Knee  -= delta;
+		} else if (key == 'm') {			r_rad_leg_angle_set.Ankle += delta;
+		} else if (key == 'M') {			r_rad_leg_angle_set.Ankle -= delta;
+
+		} else if (key == 'o') {	sit_pose();//		torso_mesh.rotation.y   += delta;
+		} else if (key == 'O') {	stand_pose();//		torso_mesh.rotation.y   -= delta;
+		} else if (key == 'l') {	squat_angle += delta; squat( Math.degrees(squat_angle) );//		torso_mesh.rotation.y   += delta;
+		} else if (key == 'L') {	squat_angle -= delta; squat( Math.degrees(squat_angle) );//		torso_mesh.rotation.y   -= delta;
+
+		} else if (key == '1') {	torso_mesh.position.y += 2; //leg_lift( "Left", Math.degrees(squat_angle) );//		torso_mesh.rotation.y   += delta;
+		} else if (key == '!') {	torso_mesh.position.y -= 2; //leg_lift( "Left", Math.degrees(squat_angle) );//		torso_mesh.rotation.y   -= delta;
+		} else if (key == '2') {	torso_mesh.position.z += 2; //leg_lift( "Left", Math.degrees(squat_angle) );//		torso_mesh.rotation.y   += delta;
+		} else if (key == '@') {	torso_mesh.position.z -= 2; //leg_lift( "Left", Math.degrees(squat_angle) );//		torso_mesh.rotation.y   -= delta;
+
+
+		} else if (key == '.') {	squat_angle += delta; leg_lift( "Left", Math.degrees(squat_angle) );//		torso_mesh.rotation.y   += delta;
+		} else if (key == '>') {	squat_angle -= delta; leg_lift( "Left", Math.degrees(squat_angle) );//		torso_mesh.rotation.y   -= delta;
+
+		} else if (key == 'p') {			torso_mesh.rotation.z  += delta;
+		} else if (key == 'P') {			torso_mesh.rotation.z  -= delta;
+
 		} else if (key == ' ') {
 			l_deg_servo_angle_set.Base 	= 0.0;
 			l_deg_servo_angle_set.Shoulder = 0.0;
@@ -445,6 +548,10 @@ function do_inverse_kinematics( xyz, angle_set )
 		set_servo_angles_degrees( "right", r_deg_servo_angle_set );		
 		populate_angle_table(l_deg_servo_angle_set, 1);
 		populate_angle_table(r_deg_servo_angle_set, 2);
+		
+		set_leg_angles( l_rad_leg_angle_set, l_leg_meshes );
+		set_leg_angles( r_rad_leg_angle_set, r_leg_meshes );		
+		
 	};			
 		
 </script>

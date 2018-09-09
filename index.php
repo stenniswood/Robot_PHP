@@ -1,7 +1,7 @@
 <head>
       <script src="../js/style_minified.js"></script>
       <script src="../js/script.js"></script>
-      <script src="../js/pipan.js"></script>
+<!--      <script src="../js/pipan.js"></script>  -->
 
 
 <style>

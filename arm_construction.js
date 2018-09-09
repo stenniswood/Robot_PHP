@@ -5,8 +5,8 @@ var LENGTH_WRIST	=	6.0;
 var BASE_HEIGHT		= 	2.5;
 */
 var arm_sizes = {
-		upper_arm_length:10,
-		lower_arm_length:10,
+		upper_arm_length:8,
+		lower_arm_length:8,
 		wrist_length    :4,				
 
 		upper_arm_width:2,
@@ -21,6 +21,15 @@ var arm_sizes = {
 
 var out_of_range_color = 0xffF02f;
 var collision_color    = 0xff001f;
+	
+Math.radians = function(degrees) {
+  return degrees * Math.PI / 180;
+};
+ 
+// Converts from radians to degrees.
+Math.degrees = function(radians) {
+  return radians * 180 / Math.PI;
+};
 	
 function get_total_arm_length()
 {
@@ -37,8 +46,6 @@ var bone_color = 0x754249;
 var bone_emissive = 0x072534;
 function arm_materials()
 {
-//	arm_material.material      = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-//	arm_material.lineMaterial  = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: false, opacity: 0.5 } );
 	arm_material.rmeshMaterial  = new THREE.MeshPhongMaterial( { color: bone_color, emissive: bone_emissive, side: THREE.DoubleSide, flatShading: true } );
 	arm_material.rmeshMaterialJ = new THREE.MeshPhongMaterial( { color: 0xC56219, emissive: 0x876514, side: THREE.DoubleSide, flatShading: true } );
 	arm_material.rmaterial3     = new THREE.MeshLambertMaterial( { color: 0x738C3C, wireframe: false } );
@@ -61,23 +68,49 @@ function construct_arm(arm_geoms,arm_meshes, joint_material, bone_material )
 
 	// Where to 'grab' the part : 
 	arm_geoms[1].translate ( 0, 0, arm_sizes.upper_arm_length/2 );		// .upper_arm
-	arm_geoms[2].translate ( 0, 0, arm_sizes.upper_arm_length   );	// .elbow
-	arm_geoms[3].translate ( 0, 0, arm_sizes.upper_arm_length/2 );		// .fore_arm
-	arm_geoms[4].translate ( 0, 0, arm_sizes.wrist_length/2);		// .wrist
+	arm_geoms[3].translate ( 0, 0, arm_sizes.lower_arm_length/2 );		// .fore_arm
+	arm_geoms[4].translate ( 0, 0,  arm_sizes.wrist_length/2);			// .wrist
 	arm_geoms[5].translate ( 0, 0, 0 );									// .wrist_mot
 
-	// 
+	// CREATE MESHES:
 	arm_meshes.shoulder  = new THREE.Mesh( arm_geoms[0],  joint_material );
 	arm_meshes.upper_arm = new THREE.Mesh( arm_geoms[1],  bone_material  );						
 	arm_meshes.elbow     = new THREE.Mesh( arm_geoms[2],  joint_material );
 	arm_meshes.fore_arm  = new THREE.Mesh( arm_geoms[3],  bone_material  );
 	arm_meshes.wrist_mot = new THREE.Mesh( arm_geoms[4],  joint_material );			
 	arm_meshes.wrist     = new THREE.Mesh( arm_geoms[5],  bone_material  );
+}
 
+function init_arm_locations()
+{
+	l_arm_meshes.shoulder.position.z 	= 10;
+	l_arm_meshes.upper_arm.position.z 	= 0;
+	l_arm_meshes.elbow.position.z 		= arm_sizes.upper_arm_length;
+	l_arm_meshes.fore_arm.position.z 	= 0;
+	l_arm_meshes.wrist_mot.position.z 	= arm_sizes.lower_arm_length;
+	l_arm_meshes.wrist.position.z 		= 0;
+	
+	l_arm_meshes.shoulder.position.x 	= 0;
+	l_arm_meshes.upper_arm.position.x 	= 0;
+	l_arm_meshes.elbow.position.x 		= 0;
+	l_arm_meshes.fore_arm.position.x 	= 0;
+	l_arm_meshes.wrist_mot.position.x 	= 0;
+	l_arm_meshes.wrist.position.x 		= 0;
+	
+	r_arm_meshes.shoulder.position.z 	= -10;
+	r_arm_meshes.upper_arm.position.z 	= 0;
+	r_arm_meshes.elbow.position.z 		= arm_sizes.upper_arm_length;
+	r_arm_meshes.fore_arm.position.z 	= 0;
+	r_arm_meshes.wrist_mot.position.z 	= arm_sizes.lower_arm_length;
+	r_arm_meshes.wrist.position.z 		= 0;
 
-//			upper_arm_mesh.position.x = 0;		upper_arm_mesh.position.y = 0;
-//			elbow_mesh.position.x 	  = 0;
-			//fore_arm_mesh.position.y  = 15;		//fore_arm_mesh.position.z  = upper_arm_length;
+	r_arm_meshes.shoulder.position.x 	= 0;
+	r_arm_meshes.upper_arm.position.x 	= 0;
+	r_arm_meshes.elbow.position.x 		= 0;
+	r_arm_meshes.fore_arm.position.x 	= 0;
+	r_arm_meshes.wrist_mot.position.x 	= 0;
+	r_arm_meshes.wrist.position.x 		= 0;
+	
 }
 function create_shadow_meshes(arm_meshes)
 {
@@ -107,46 +140,15 @@ function create_shadow_meshes(arm_meshes)
 	scene.add( arm_meshes.lwmShadow );
 	scene.add( arm_meshes.lwaShadow );
 }
-
-function init_arm_locations()
-{
-	l_arm_meshes.shoulder.position.z 	= 10;
-	l_arm_meshes.upper_arm.position.z 	= 10;
-	l_arm_meshes.elbow.position.z 		= 10;
-	l_arm_meshes.fore_arm.position.z 	= 10;
-	l_arm_meshes.wrist_mot.position.z 	= 10;
-	l_arm_meshes.wrist.position.z 		= 10;
-	
-	l_arm_meshes.shoulder.position.x 	= 0;
-	l_arm_meshes.upper_arm.position.x 	= 0;
-	l_arm_meshes.elbow.position.x 		= 0;
-	l_arm_meshes.fore_arm.position.x 	= 0;
-	l_arm_meshes.wrist_mot.position.x 	= 0;
-	l_arm_meshes.wrist.position.x 		= 0;
-	
-	r_arm_meshes.shoulder.position.z 	= -10;
-	r_arm_meshes.upper_arm.position.z 	= -10;
-	r_arm_meshes.elbow.position.z 		= -10;
-	r_arm_meshes.fore_arm.position.z 	= -10;
-	r_arm_meshes.wrist_mot.position.z 	= -10;
-	r_arm_meshes.wrist.position.z 		= -10;
-
-	r_arm_meshes.shoulder.position.x 	= 0;
-	r_arm_meshes.upper_arm.position.x 	= 0;
-	r_arm_meshes.elbow.position.x 		= 0;
-	r_arm_meshes.fore_arm.position.x 	= 0;
-	r_arm_meshes.wrist_mot.position.x 	= 0;
-	r_arm_meshes.wrist.position.x 		= 0;
-	
-}
 function add_to_scene(meshes)
 {
-	scene.add( meshes.shoulder  );
-	scene.add( meshes.upper_arm );
-	scene.add( meshes.elbow	 );
-	scene.add( meshes.fore_arm  );
-	scene.add( meshes.wrist_mot );
-	scene.add( meshes.wrist     );			
+	meshes.shoulder.add( meshes.upper_arm );
+	meshes.upper_arm.add( meshes.elbow     );	
+	meshes.elbow.add( meshes.fore_arm  );
+	meshes.fore_arm.add( meshes.wrist_mot );	
+	meshes.wrist_mot.add( meshes.wrist  );
+
+//	scene.add( meshes.shoulder  );
 }
 
 function arms_collide()

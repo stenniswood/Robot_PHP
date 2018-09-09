@@ -84,42 +84,21 @@ function set_servo_angles_rad( meshes, grip_mesh, arm_sizes, angle_set )
 		meshes.upper_arm.rotation.x = Base; 
 		meshes.upper_arm.rotation.y = angle_set.Shoulder;
 		meshes.upper_arm.updateMatrixWorld();
-		
-		meshes.elbow.rotation.x     = Base;
-		meshes.elbow.rotation.y     = angle_set.Shoulder;
-		meshes.elbow.updateMatrixWorld();
-
-		// Relocate the ForeArm to match the Elbow:
-		vec_elbow     = new THREE.Vector3( 0,0, arm_sizes.upper_arm_length );
-		var rot_point = meshes.elbow.localToWorld( vec_elbow );
-		meshes.fore_arm.position.x = rot_point.x;
-		meshes.fore_arm.position.y = rot_point.y;				
-		meshes.fore_arm.position.z = rot_point.z;				
 										
-		meshes.fore_arm.rotation.x  = Base;
-		meshes.fore_arm.rotation.y  = angle_set.Shoulder + angle_set.Elbow;
+		//meshes.fore_arm.rotation.x  = Base;  angle_set.Shoulder 
+		meshes.fore_arm.rotation.y  = + angle_set.Elbow;
 		meshes.fore_arm.updateMatrixWorld();
 		
 		// Relocate the Wrist to match the Forearm stub:	
 		var fa_vec     = new THREE.Vector3( 0,0, arm_sizes.upper_arm_length );
 		rot_point = meshes.fore_arm.localToWorld( fa_vec );
-		meshes.wrist.position.x 		= rot_point.x;
-		meshes.wrist.position.y 		= rot_point.y;				
-		meshes.wrist.position.z 		= rot_point.z;
-		meshes.wrist_mot.position.x 	= rot_point.x;
-		meshes.wrist_mot.position.y 	= rot_point.y;				
-		meshes.wrist_mot.position.z 	= rot_point.z;
-		meshes.wrist_mot.rotation.x  	= Base;
-		meshes.wrist.rotation.x  	   	= Base;
 		
 		if (isNaN(angle_set.Wrist))	return;
-		meshes.wrist_mot.rotation.y   = angle_set.Shoulder + angle_set.Elbow + angle_set.Wrist;
-		meshes.wrist.rotation.y  	  = angle_set.Shoulder + angle_set.Elbow + angle_set.Wrist;			
+		meshes.wrist_mot.rotation.y   = + angle_set.Wrist;	//angle_set.Shoulder + angle_set.Elbow
+
 
 		// MOVE LEFT GRIPPER:	
 		if (isNaN(angle_set.WristRotate))	return;
-		meshes.wrist.updateMatrixWorld();		
-		var fa_vec     = new THREE.Vector3( 0,0, arm_sizes.wrist_length );
 		grip_mesh.wrist.rotation.z = angle_set.WristRotate;
 		
 		

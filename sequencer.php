@@ -14,15 +14,18 @@
 </fieldset>
 
 
-<script src="sequencer_help.js" >
+<?php include "sequencer_actions.php" ?>
 
-</script>
+
+<script src="sequencer_help.js" ></script>
+
 
 <?php include "sequencer_load_save.php";
 
 	//init_junk_sequence();
 	//save_sequence("MY_SEQEUENCES.SEQ");	
-	load_sequence("MY_SEQUENCES.SEQ");	
+
+	$MicroSeq = load_sequence("MY_SEQUENCES.SEQ");			
 	load_variables("MY_INPUTS.VARS");	
 ?>
 
@@ -74,7 +77,7 @@
 </script>
 
 <fieldset >
-  <legend>Micro Sequence:</legend>
+  <legend>Micro Sequence:</legend>  
 	<table id="sequence" onclick="handle_table_row_click(event)" border="1" opacity="0.4" ><tr>
 	<th width="10"  align="left"></th>
 	<th width="10"  align="left">Step</th>
@@ -87,17 +90,17 @@
 	<th width="200" align="left">Buttons</th>	</tr>	
 	<?php
 		$i=0;
-		//var_dump($MicroSeq);		echo "<br>";
+
 		foreach ($MicroSeq as $row)
-		{
-			//var_dump($row);
+		{			
 			echo "<tr ondblclick=\"handle_table_row_click(event)\">";
 			if ($selected_row==$i)
 				echo "<td><img src=\"icons/RightRedArrow.png\"  style=\"width:20px;height:15px;\"> "."</td>";
 			else
 				echo "<td></td>";
 			echo "<td onclick=\"handle_table_row_click(event)\">".$i."</td>";
-			echo "<td ondblclick='handle_on_change_label(event)'>".$row["label"]."</td>";
+
+			echo "<td ondblclick='handle_on_change_label(event)'>".$row['label']." </td>";
 			echo "<td>".$row["type"]."</td>";
 			echo "<td>".$row["model"]."</td>";
 			echo "<td ondblclick='handle_on_change_action(event)'>".$row["action"]."</td>";
@@ -111,11 +114,11 @@
 <tr><td></td><td><?php $i+1; ?></td><td></td>
 <td><select id="select_type" onchange="configure_type(this.value)" >
 	<option value="1" selected>Command</option>
-	<option value="3" selected>Directive</option>	
-	<option value="4" selected>System</option>		
-	<option value="5" selected>Left_arm</option>		
-	<option value="5" selected>Right_arm</option>				
-	<option value="6" selected>Coordinated_arms</option>					
+	<option value="3">Directive</option>	
+	<option value="4">System</option>
+	<option value="5" >Left_arm</option>		
+	<option value="5" >Right_arm</option>				
+	<option value="6" >Coordinated_arms</option>					
 </select>
 <button id="delay_button" >
 <img src='icons/delay.png' alt='dt' onclick='handle_add_delay()' style='width:25px;height:25px;'>
@@ -130,6 +133,7 @@
 
 <td>
 <span>
+
 <select id="drive_five_cmds" onchange="cmd_change('Drive Five')" selected="1" >
 	<option value="1" selected>PWM</option>
 	<option value="2" >PID</option>	
@@ -163,6 +167,7 @@
 	<option value="13" >scan horizon</option>				
 	<option value="14" >scan up down</option>					
 </select>
+
 
 <select id="load_cell_cmds" onchange="cmd_change('Load-cell')" selected="1">
 	<option value="0" >(load cell select:)</option>
@@ -205,9 +210,10 @@
 	<option value="4" >wait_until_(n>X)</option>	
 	<option value="5" >wait_until_(n\< X)</option>
 	<option value="6" >range</option>
-	<option value="7" >if_less_than</option>
-	<option value="8" >if_greater_than</option>		
-	<option value="9" >if_equal</option>			
+	<option value="7" >control</option>	
+	<option value="8" >if_less_than</option>
+	<option value="9" >if_greater_than</option>		
+	<option value="10" >if_equal</option>			
 </select>
 
 <p id="parameter">
@@ -283,15 +289,13 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 
 	var param_p 	= document.getElementById("parameter" );
 	var param 		= document.getElementById("parameter_text" );
-//var micro_seq   = [];
-	
 	
 	var help_ctrls  = document.getElementById("context_help");	
 	var help_param_ctrl  = document.getElementById("parameter_help");		
 	
 
-
-	//inputs.style.display = "none";	
+	configure_model( bm_sel.selected_row );
+	//inputs.style.display = "none";
 	bm_sel.style.display = "none";
 	hide_all_cmds();
 	init_help();
@@ -353,16 +357,6 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		cmd_text += param.value;
 		return cmd_text.trim();
 	}
-	function perform_now()
-	{
-		var Model = bm_sel.selectedOptions[0].innerHTML;
-		var cmd   = extract_full_command_from_controls( Model );
-		
-		var board = bs_sel.selectedOptions[0].innerHTML;
-		var dev    = board.split(",");
-		
-		perform_command(Model,cmd,dev[1]);
-	}
 	function handle_delete() 
 	{		
 		//micro_seq.remove();				
@@ -377,7 +371,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		new_entry["type"]   = "Directive";
 		new_entry["model"]  = "";
 		new_entry["action"] = "delay "+ step_rate_ctrl.value;
-		new_entry["device"] = "";
+		new_entry["device"] = " ";
 		//micro_seq.push( new_entry );
 
 		var row = seq_table.insertRow(num_rows-1);
@@ -395,9 +389,9 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		cell3.innerHTML = new_entry["type"];
 		cell4.innerHTML = new_entry["model"];
 		cell5.innerHTML = new_entry["action"];
-		cell6.innerHTML = new_entry["board_name"];	
+		cell6.innerHTML = new_entry["board_name"];
 		cell7.innerHTML = new_entry["device"];	
-		cell8.innerHTML = "";
+		cell8.innerHTML = " ";
 		play_sound_ajax("stock1");	
 	}
 	
@@ -422,8 +416,12 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		case "Command":	// Command
 			new_entry["model"]  = bm_sel.selectedOptions[0].innerHTML;
 			new_entry["action"] = extract_full_command_from_controls( bm_sel.selectedOptions[0].innerHTML );
-			if (bs_sel.selectedOptions.length)
-				new_entry["device"] = bs_sel.selectedOptions[0].innerHTML;
+
+			if (bs_sel.selectedOptions.length) {
+				var boardName_dev = bs_sel.selectedOptions[0].innerHTML.split(",");
+				new_entry["board_name"] = boardName_dev[0];				
+				new_entry["device"] = boardName_dev[1];
+			}
 			break;
 		case "Directive":		// Directive			
 			new_entry["action"] = nd_sel.selectedOptions[0].innerHTML;
@@ -434,21 +432,42 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 			var row = seq_table.rows[len-1];
 			//var action = document.getElementById("new_directive");
 			var words = nd_sel.selectedOptions[0].innerHTML;
+
 			if (words == "range") {
 				var val = param.value;
 				var words = val.split(" ");
 				var var_name = words[0].replace(/^\$/g,"");
-				var range_str = words[1] +", "+ words[2] +", "+ words[3] +", "+words[4];				
+				var range_str = words[1] +" "+ words[2] +" "+ words[3] +" "+words[4];				
 				
 				var new_entry = {};
 				new_entry["board_name"] = "n.a. internal";
 				new_entry["model"]  	= " ";		
 				new_entry["name"]   	= "M_"+var_name;
-				new_entry["response_index"]  = "n.a.";
-				new_entry["eliciting_cmd"]   = "range("+var_name+", "+range_str+")";
-				new_entry["signal_type"]     = "internal variable";
+				new_entry["response_index"]  = "range $"+var_name+" "+range_str+"";
+				new_entry["eliciting_cmd"]   = var_name;
+				new_entry["signal_type"]     = "internal dependant";
 				add_user_variable( new_entry );
+				play_sound_ajax("stock2");
+				return;				
 			}
+			if (words == "control") {
+				var val = param.value;
+				var words = val.split(" ");
+				var var_name = words[0].replace(/^\$/g,"");
+				var control_str = words[1] +" "+ words[2];				
+				
+				var new_entry = {};
+				new_entry["board_name"] = "n.a. internal";
+				new_entry["model"]  	= " ";		
+				new_entry["name"]   	= "C_"+var_name;
+				new_entry["response_index"]  = "control $"+var_name+" "+control_str+"";
+				new_entry["eliciting_cmd"]   = var_name;
+				new_entry["signal_type"]     = "internal dependant";
+				add_user_variable( new_entry );
+				play_sound_ajax("stock2");
+				return;				
+			}
+
 			break;
 		case "System":			// System
 			new_entry["action"] = system_sel.selectedOptions[0].innerHTML;
@@ -468,12 +487,16 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		var cell4 = row.insertCell(4);
 		var cell5 = row.insertCell(5);						
 		var cell6 = row.insertCell(6);			
+		var cell7 = row.insertCell(7);	
+		var cell8 = row.insertCell(8);					
 		cell1.innerHTML = new_entry["step"];
 		cell2.innerHTML = new_entry["label"];		
 		cell3.innerHTML = new_entry["type"];
 		cell4.innerHTML = new_entry["model"];
 		cell5.innerHTML = new_entry["action"];
-		cell6.innerHTML = new_entry["device"];		
+		cell6.innerHTML = new_entry["board_name"];		
+		cell7.innerHTML = new_entry["device"];		
+		cell8.innerHTML = " ";
 		
 		play_sound_ajax("stock1");
 	}
@@ -562,6 +585,7 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		{
 		case "1": 	// Drive Five
 			df_sel.style.display = "block";
+			
 			//help_ctrls.innerHTML = cmd_help["Drive Five"]["PWM"];
 			// Now configure the Device choices select:
 			populate_board_select("Drive Five");
@@ -620,8 +644,9 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 			text['type']   = seq_table.rows[rowIndex].cells[3].innerHTML;
 			text['model']  = seq_table.rows[rowIndex].cells[4].innerHTML;
 			text['action'] = seq_table.rows[rowIndex].cells[5].innerHTML;
-			text['device'] = seq_table.rows[rowIndex].cells[6].innerHTML;			
-
+			text['board_name'] = seq_table.rows[rowIndex].cells[6].innerHTML;			
+			text['device'] = seq_table.rows[rowIndex].cells[7].innerHTML;			
+			
 		return text;
 	}
 	
@@ -668,203 +693,27 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 		}			
 	}
 
-	function perform_command(model,action,device)
+	
+	function get_value( word )
 	{
-			//var words = action.split( " ");	
-			
-			// Ajax send :
-			// Find the deviceInfo index.
-			usb_send_ajax( device, action );
+		var value = 0;
+		if (word[0]=="$") {		// A Variable 
+			var	var_name = word.replace(/^\$/g,"");
+			var iv_index = find_input_variable( var_name );
+			if (iv_index>=0)
+				value = InputVars[iv_index]['latest_value'];
+		} else {
+			value = parseFloat(word);
+		}					
+		return value;	
 	}
-	function perform_input(action)
-	{
-	}
-	function perform_directive(action)
-	{
-		var str;
-		var line_num=-1;
-		var words = action.split(" ");
-		var delay;
-		var src_min=0; var src_max=100;
-		var dest_min=0; var dest_max=100;
-		words.forEach( (word, index) => {
-			words[index] = word.trim();
-		});
-		
-		switch(words[0])
-		{
-		case "goto":	search_label = words[1];
-				line_num = find_label(search_label);
-				str      = "Goto "+search_label+". line="+line_num+".";
-				
-				if (line_num!="not found")
-					active_row = line_num-1;			// Put 1 above line, because of pos increment operator.
-				else
-					alert(str);				
-				break;
-		case "delay":	delay = words[1];
-				play_back_paused = true;
-				setTimeout( resume_playback, delay );
-				break;
-		case "range":	// Maps input value to new range.  Can be inverse proportion.
-				var_name = words[0].trim("$");
-				var iv_index = find_input_variable( var_name );
-				var value = InputVars[iv_index]['latest_value'];
-				src_min = words[1];		src_max  = words[2];
-				dest_min = words[3];	dest_max = words[4];
-				var range_src  = src_max - src_min;
-				var range_dest = dest_max- dest_min;
-				// x is y as z is to w
-				//(value - src_min)/range_src = (dest_val-dest_min)/range_dest;
-				dest_val = range_dest*(value - src_min)/range_src+dest_min;
-				
-				
-				break;
-		case "if_less_than":	// Maps input value to new range.  Can be inverse proportion.
-				var is_0_var = (words[0][0]=='$');
-				var is_1_var = (words[1][0]=='$');
-				var iv_0_index=-1;
-				var iv_1_index=-1;
-				var value0,value1;
-				if (is_0_var) {
-					iv_0_index = find_input_variable( words[0].trim("$") );
-				 	value0 = InputVars[iv_0_index]['latest_value'];
-				} else value0 = words[0];
-				if (is_1_var) {
-					iv_1_index = find_input_variable( words[1].trim("$") );
-				 	value1 = InputVars[iv_1_index]['latest_value'];
-				} else value1 = words[1];				 
-				if (value0 < value1)
-				{
-					line_num = find_label(search_label);
-					active_row = line_num-1;			// Put 1 above line, because of pos increment operator.
-				}
-				break;
-		case "if_greater_than":	// Maps input value to new range.  Can be inverse proportion.
-				var is_0_var = (words[0][0]=='$');
-				var is_1_var = (words[1][0]=='$');
-				var iv_0_index=-1;
-				var iv_1_index=-1;
-				var value0,value1;
-				if (is_0_var) {
-					iv_0_index = find_input_variable( words[0].trim("$") );
-				 	value0 = InputVars[iv_0_index]['latest_value'];
-				} else value0 = words[0];
-				if (is_1_var) {
-					iv_1_index = find_input_variable( words[1].trim("$") );
-				 	value1 = InputVars[iv_1_index]['latest_value'];
-				} else value1 = words[1];				 
-				if (value0 > value1)
-				{
-					line_num = find_label(search_label);
-					active_row = line_num-1;			// Put 1 above line, because of pos increment operator.
-				}
-				break;
-		case "if_equal":		// Maps input value to new range.  Can be inverse proportion.
-				var is_0_var = (words[0][0]=='$');
-				var is_1_var = (words[1][0]=='$');
-				var iv_0_index=-1;
-				var iv_1_index=-1;
-				var value0,value1;
-				if (is_0_var) {
-					iv_0_index = find_input_variable( words[0].trim("$") );
-				 	value0 = InputVars[iv_0_index]['latest_value'];
-				} else value0 = words[0];
-				if (is_1_var) {
-					iv_1_index = find_input_variable( words[1].trim("$") );
-				 	value1 = InputVars[iv_1_index]['latest_value'];
-				} else value1 = words[1];				 
-				if (value0 == value1)
-				{
-					line_num = find_label(search_label);
-					active_row = line_num-1;			// Put 1 above line, because of pos increment operator.
-				}
-				break;
-		
-		default:
-				break;				
-		}
-	}
+	
 	function resume_playback() 
 	{
 		play_back_paused = false;
 	}
 	
-	function perform_system(action)
-	{
-		var servo_angles={};
-		var filename;
-		var words = action.split( " " );
-		switch(words[0])
-		{
-		case "play":  filename = words[1];
-				play_sound_ajax( filename ); 
-				break;
-		case "exec"			:	
-				break;
-		case "tts"			:
-				break;
 
-		case "l_arm_xyz"		:	var xyz = {};		
-				xyz['x']=words[1]; xyz['y']=words[2]; xyz['z']=words[3];				
-				INV_XYZ_To_Angles( xyz, servo_angles );
-				set_servo_angles_rad( l_arm_meshes, l_grip_meshes, arm_sizes, angle_set );				
-				update_object_position(xyz);
-				break;
-		case "l_arm_gripper":				break;
-		case "l_arm_wrist"	:				break;
-		case "l_arm_raise"	:				break;
-		case "l_arm_lower"	:				break;		
-		case "l_arm_rotate"	:				break;			
-
-		case "r_arm_xyz"	:	var xyz = {};		
-				xyz['x']=words[1]; xyz['y']=words[2]; xyz['z']=words[3];
-				INV_XYZ_To_Angles( xyz, servo_angles );
-				set_servo_angles_rad( r_arm_meshes, r_grip_meshes, arm_sizes, angle_set );
-				update_object_position(xyz);
-				break;
-		case "r_arm_gripper":				break;
-		case "r_arm_wrist"	:				break;
-		case "r_arm_raise"	:				break;
-		case "r_arm_lower"	:				break;		
-		case "r_arm_rotate"	:				break;			
-		
-		case "leg_xyz"		:	
-				break;
-		case "bend_foot"	:	
-				break;
-
-		default:
-				break;				
-		}
-	}
-
-	function perform_row_action(row)
-	{
-			var Type = row.childNodes[3].innerHTML;
-			var action = row.childNodes[5].innerHTML;
-			var model  = row.childNodes[4].innerHTML;			
-			var device = row.childNodes[6].innerHTML;						
-			switch(Type)
-			{
-			case "Command"	:	perform_command(model,action,device);
-					break;
-			case "Directive":	perform_directive(action);
-					break;
-			case "System"     :	perform_system(action);
-					break;
-			case "Left_arm"   :	perform_system(action);
-					break;
-			case "Right_arm"  :	perform_system(action);
-					break;
-			case "Left_leg"   :	perform_system(action);
-					break;
-			case "Right_leg"  :	perform_system(action);
-					break;
-			default:
-					break;				
-			}
-	}
 	
 	var prev_row = 0;
 	var active_row = 1;
@@ -899,7 +748,6 @@ Step Rate:<input id="step_rate" width="50" value="200" >ms</input>
 			perform_row_action( seq_table.rows[active_row] );
 			active_row++;			
 		}
-
 	}
 	
 
@@ -943,7 +791,7 @@ function save_inputvars_ajax(filename)
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 		  //document.getElementById("result_text").innerHTML = this.responseText;
-		  alert("Sequence Saved!"+this.responseText);
+		  //alert("Sequence Saved!"+this.responseText);
 		}
 	};  
 	
@@ -988,8 +836,6 @@ function usb_send_ajax(device_path, data)
 
 	xhttp.open("POST", "usb_send_receive.php", true);		 
 	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	//xhttp.setRequestHeader("Connection", "close");  
-	//xhttp.setRequestHeader("Content-length", payload.length);
 	xhttp.send(payload);	
 }
 
