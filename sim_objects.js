@@ -244,6 +244,49 @@ function move_to_object()
 
 // Front/Back is +0 Y direction.  
 // Returns XYZ coordinate.
+function place_on_top_of( mesh, ref_group )
+{
+	var dest_xyz = {};
+	mesh.geometry.computeBoundingBox();
+	var ref_box = get_group_bounding_box( ref_group );	
+
+	var ref_width  = (ref_box.max.z - ref_box.min.z);
+	var ref_length = (ref_box.max.y - ref_box.min.y);	
+
+	var new_x = ref_box.max.x + ref_group.position.x;
+	var new_z = Math.random() * ref_width  + ref_group.position.z;
+	var new_y = Math.random() * ref_length + ref_group.position.y;
+
+	var Padding = 2;
+	var obj_width  = (mesh.geometry.boundingBox.max.z - mesh.geometry.boundingBox.min.z);
+	var obj_length = (mesh.geometry.boundingBox.max.y - mesh.geometry.boundingBox.min.y);	
+
+	dest_xyz.x = new_x;
+	dest_xyz.y = new_y;
+	dest_xyz.z = new_z;	
+
+	mesh.position.x = new_x;
+	mesh.position.y = new_y;
+	mesh.position.z = new_z;
+
+/*	var alignment_edge = 0;
+	if (align=="front")			// toward robot
+	{
+		alignment_edge  = (ref_mesh.position.y-ref_length/2);	// front edge.
+		dest_xyz.y = alignment_edge + obj_length/2;		
+	} else if (align=="back")	
+	{
+		alignment_edge  = (ref_mesh.position.y+ref_length/2);	// back edge.
+		dest_xyz.y = alignment_edge - obj_length/2;
+	} else if (align=="centers")
+	{
+		dest_xyz.y = ref_mesh.position.y;
+	} */
+	return dest_xyz;
+}
+
+// Front/Back is +0 Y direction.  
+// Returns XYZ coordinate.
 function place_in_front_of( mesh, ref_mesh )
 {
 	var dest_xyz = {};
@@ -444,43 +487,20 @@ function find_largest_area(xyz)
 	return max_index;
 }
 
-/* 
-wall : { start, end, length }
-	dir_vec is a vector in the YZ plane.
-	brick gives width & length & height AND positioning <x,y,z>
-			will be updated in place.
-*/
-function next_brick_position( wall, brick, dir_vec, num_bricks )
-{
-	next_brick.x = next_brick.x + brick.height;	
-	next_brick.y = brick.length * dir_vec.y;
-	next_brick.z = brick.length * dir_vec.z;
-	
-	var len_so_far = num_bricks * brick.length;
-	if (len_so_far >= wall.length) {
-		next_brick.x += brick.height;
-		next_brick.y = wall.start.y;
-		next_brick.z = wall.start.z;
-	}	
-}
-
-function stack_blocks_wall(wall, brick, dir_vec)
-{	
-	next_brick_position( wall, brick, dir_vec, num_bricks );
-	//pick_and_place( stockpile, brick );
-}
-
-function build_brick_wall(wall, brick, dir_vec)
-{
-	
-	next_brick_position( wall, brick, dir_vec, num_bricks );
-	//pick_and_place( stockpile, brick );
-}
 
 make_object_materials();
-//construct_objects( object_geoms, object_meshes );
-//add_objs_to_scene( object_meshes );
-//create_obj_shadow_meshes(object_meshes);
+construct_objects( object_geoms, object_meshes );
+add_objs_to_scene( object_meshes );
+create_obj_shadow_meshes(object_meshes);
+
+var omi;
+var obj;
+for (omi=0; omi<6; omi++)
+	obj = place_on_top_of( object_meshes[omi], table[1] );
+
+for (omi=6; omi<12; omi++)
+	place_on_top_of( object_meshes[omi], table[0] );
+
 
 
 

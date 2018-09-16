@@ -20,6 +20,8 @@ var l_servo_limits_rad = {};
 var r_servo_limits_rad = {};
 
 var l_deg_servo_angle_set = {
+	BodyPart: "Arm",
+	Arm		: "Left",
 	Base    : 0.0,
 	Shoulder: 0.0,
 	Elbow   : 0.0,
@@ -30,6 +32,8 @@ var l_deg_servo_angle_set = {
 	unit    : "Degrees",
 };
 var r_deg_servo_angle_set = {
+	BodyPart: "Arm",
+	Arm		: "Right",
 	Base    : 0.0,
 	Shoulder: 0.0,
 	Elbow   : 0.0,
@@ -42,8 +46,6 @@ var r_deg_servo_angle_set = {
 
 var l_rad_servo_angle_set={};
 var r_rad_servo_angle_set={};
-
-
 var vec_elbow  = new THREE.Vector3( 0,0, arm_sizes.upper_arm_length + arm_sizes.upper_arm_length/2 );
 
 
@@ -142,27 +144,48 @@ function convert_servo_limits_to_rad( servo_limits_deg, servo_limits_rad)
 	
 	servo_limits_rad.WristRotate = {};
 	servo_limits_rad.WristRotate.max = variable.max;
-	servo_limits_rad.WristRotate.min = variable.min;
-	
+	servo_limits_rad.WristRotate.min = variable.min;	
 }
 
-function check_servo_limits(angle_set, servo_limits)
+function check_arm_limits_okay( arm_limits, arm_angles )
 {
-	var angle_ref = {};
-	angle_ref.a = angle_set.Base;
-	if (within_boundary(angle_ref, servo_limits.Base )==false )		angle_set.Base = angle_ref.a;
+	var retval = true;
+	if ( arm_angles.Base > arm_limits.Base.max ) retval = false;
+	if ( arm_angles.Base < arm_limits.Base.min ) retval = false;
 
-	angle_ref.a = angle_set.Shoulder;
-	if (within_boundary(angle_ref, servo_limits.Shoulder )==false )		angle_set.Shoulder = angle_ref.a;
+	if ( arm_angles.Shoulder > arm_limits.Shoulder.max ) retval = false;
+	if ( arm_angles.Shoulder < arm_limits.Shoulder.min ) retval = false;
 
-	angle_ref.a = angle_set.Elbow;
-	if (within_boundary(angle_ref, servo_limits.Elbow )==false )		angle_set.Elbow = angle_ref.a;
+	if ( arm_angles.Elbow > arm_limits.Elbow.max ) retval = false;
+	if ( arm_angles.Elbow < arm_limits.Elbow.min ) retval = false;
 
-	angle_ref.a = angle_set.Wrist;
-	if (within_boundary(angle_ref, servo_limits.Wrist )==false )		angle_set.Wrist = angle_ref.a;
+	if ( arm_angles.Wrist > arm_limits.Wrist.max ) retval = false;
+	if ( arm_angles.Wrist < arm_limits.Wrist.min ) retval = false;
+	
+	if ( arm_angles.WristRotate > arm_limits.WristRotate.max ) retval = false;
+	if ( arm_angles.WristRotate < arm_limits.WristRotate.min ) retval = false;		
+	return retval;
+}
 
-	angle_ref.a = angle_set.WristRotate;
-	if (within_boundary(angle_ref, servo_limits.WristRotate )==false )		angle_set.WristRotate = angle_ref.a;
+function clamp_servos_at_limits( angle_set, servo_limits )
+{
+	var retval = true;
+	if ( arm_angles.Base > arm_limits.Base.max ) 		arm_angles.Base = arm_limits.Base.max;
+	if ( arm_angles.Base < arm_limits.Base.min ) 		arm_angles.Base = arm_limits.Base.min;
+
+	if ( arm_angles.Shoulder > arm_limits.Shoulder.max ) arm_angles.Shoulder = arm_limits.Shoulder.max;
+	if ( arm_angles.Shoulder < arm_limits.Shoulder.min ) arm_angles.Shoulder = arm_limits.Shoulder.min;
+
+	if ( arm_angles.Elbow > arm_limits.Elbow.max ) 		arm_angles.Elbow = arm_limits.Elbow.max;
+	if ( arm_angles.Elbow < arm_limits.Elbow.min ) 		arm_angles.Elbow = arm_limits.Elbow.min;
+
+	if ( arm_angles.Wrist > arm_limits.Wrist.max ) 		arm_angles.Wrist = arm_limits.Wrist.max;
+	if ( arm_angles.Wrist < arm_limits.Wrist.min ) 		arm_angles.Wrist = arm_limits.Wrist.min;
+
+	if ( arm_angles.WristRotate > arm_limits.WristRotate.max ) arm_angles.WristRotate = arm_limits.WristRotate.max;
+	if ( arm_angles.WristRotate < arm_limits.WristRotate.min ) arm_angles.WristRotate = arm_limits.WristRotate.min;
+
+	return retval;
 }
 
 function set_servo_angles_degrees( left_or_right, angle_set )
@@ -179,6 +202,6 @@ function set_servo_angles_degrees( left_or_right, angle_set )
 	}
 }
 
-check_servo_limits( l_deg_servo_angle_set, l_servo_limits_deg );
-check_servo_limits( r_deg_servo_angle_set, r_servo_limits_deg );
+check_arm_limits_okay( l_deg_servo_angle_set, l_servo_limits_deg );
+check_arm_limits_okay( r_deg_servo_angle_set, r_servo_limits_deg );
 

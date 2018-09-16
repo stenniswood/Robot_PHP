@@ -1,6 +1,6 @@
 <head>
-      <script src="../js/style_minified.js"></script>
-      <script src="../js/script.js"></script>
+<!--      <script src="../js/style_minified.js"></script> -->
+<!--      <script src="../js/script.js"></script> -->
 <!--      <script src="../js/pipan.js"></script>  -->
 
 
@@ -97,7 +97,8 @@ table.nohover  tr:hover {background-color:#4191C1;}
 <?php $_SESSION['active_tab'] = 'System'; 
 //onload="webGLStart();"
 ?>
-<body   >
+
+<body onload="setTimeout('init();', 100);"  >
 <h2>Beyond Kinetics Tank Plus</h2>
 
 <div class="tab">
@@ -111,6 +112,9 @@ table.nohover  tr:hover {background-color:#4191C1;}
   <button class="tablinks"  onclick="openPage(event, 'Map')"			>Map</button>
   <button class="tablinks"  onclick="openPage(event, 'Sim3D')"			>3D Sim</button>
 </div>
+
+
+
 
 <?php include "arm_kinematics.php" 	?>
 <?php include "System.php" 			?>

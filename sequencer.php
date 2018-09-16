@@ -820,11 +820,19 @@ function save_inputvars_ajax(filename)
 	xhttp.send(payload);	
 }
 
+var t1;	
+
 function usb_send_ajax(device_path, data) 
 {	
+	var d = new Date();
+	
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
+			var t2 = d.getSeconds() + d.getMilliseconds()/1000;
+			var time_taken = t2 - t1;
+			console.log ("Time elapsed="+time_taken );
+			
 		  //document.getElementById("result_text").innerHTML = this.responseText;
 		  //alert("Sequence Saved!"+this.responseText);
 		}
@@ -833,6 +841,8 @@ function usb_send_ajax(device_path, data)
 	var payload;
 	payload = "path="+device_path;
 	payload += "&data="+data;
+	
+	t1 = d.getSeconds() + d.getMilliseconds()/1000.;
 
 	xhttp.open("POST", "usb_send_receive.php", true);		 
 	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");

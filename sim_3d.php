@@ -2,6 +2,7 @@
 <script src="three.js/build/three.js"></script>
 <script src="three.js/examples/js/controls/OrbitControls.js"></script>
 <script src="three.js/examples/js/objects/ShadowMesh.js"></script>
+<script src="./three.js/THREE.MeshLine.js"></script>
 
 <style>
 .xyzslider {
@@ -28,16 +29,15 @@
 </style>
 
 <fieldset>
-
 XYZ:<input id='xyz'></input>
 <button id='move_left'  onclick="activate('left')" >Left</button>
 <button id='move_right' onclick="activate('right')">Right</button>
-
 Approach Angle:<input id='approach' value='-90'></input><br>
 </fieldset>
 
-<fieldset>
+<fieldset style="width:400; float:left;" >
 <legend>Arm Moves</legend>
+
 <select id='path_catagory'></input>
 <option>Pick and Place</option>
 <option>Pick and Place Object</option>
@@ -55,13 +55,16 @@ Approach Angle:<input id='approach' value='-90'></input><br>
 <option>Line Path</option>
 <option>Bull Dozer lift</option>
 </select>
+
 <input id="path_parameters" > </input>
 <input id="path_speed" width="50" value="100"> </input>
+
 <select id="which_hand">
 <option>Left</option>
 <option>Right</option>
 <option>Both</option>
 </select>
+
 <button id='store_position' onclick="store_xyz('right'); store_xyz('left');">Store</button>
 <button id='create_path'    onclick="create_path()">Create</button>
 <button id='do_path'        onclick="simulate_path()">Do Path</button>
@@ -70,7 +73,6 @@ Approach Angle:<input id='approach' value='-90'></input><br>
 <button id='add_path_seq'  class='addseq' onclick="add_path_to_sequencer()">Add to Sequencer</button><br>
 
 <table id="paths" >
-</tr>
 </table>
 
 
@@ -90,23 +92,20 @@ Approach Angle:<input id='approach' value='-90'></input><br>
 <div id="object_grab_feedback">Text for objects positioning.</div>
 </fieldset>
 
-<fieldset>
+<fieldset style="width:700" >
 <legend>Linear Positioning:</legend>
 XYZ is to : 
 <input name="xyz_is_" id='xyz_is_wrist' 		 onclick="grip_position = GRIP_NONE;" type="radio"  >wrist</input>
 <input name="xyz_is_" id='xyz_is_gripper_tip' 	 onclick="grip_position = GRIP_TIP;" type="radio"  >tip of gripper</input>
 <input name="xyz_is_" id='xyz_is_gripper_center' onclick="grip_position = GRIP_CENTER;" type="radio"  >center of gripper</input>
 <input name="xyz_is_" id='xyz_is_gripper_back'   onclick="grip_position = GRIP_CENTER;" type="radio"  >back of gripper</input>
-
-    <canvas id="arm_sim-canvas" style="border: none;" width="512" height="256"
-    backgroundColor = 'transparent'></canvas>
-    <br/>
-
+<br/>
 <?php include "xyz_sliders.php" ?>
 </fieldset>
 
-<script src="./three.js/examples/js/loaders/ColladaLoader.js" ></script>
 
+<span id="arm_sim_canvas" style="border: none; width:1200; heigh:480;" width="1200" height="480"></span>
+<script src="./three.js/examples/js/loaders/ColladaLoader.js" ></script>
 <?php include "arm_presets.php" ?>
 
 
@@ -222,30 +221,30 @@ function do_inverse_kinematics( xyz, angle_set )
 
 
 <script>
-	var canvas = document.getElementById("arm_sim-canvas");
-	document.body.appendChild( canvas );
-	
+	var canvas = document.getElementById("arm_sim_canvas");
+	//document.body.appendChild( canvas );
+
 	var renderer = new THREE.WebGLRenderer();
-	var w = canvas.width;
-	renderer.setSize( canvas.width, canvas.height );
+	var w = canvas.attributes.width.value;
+	var h = canvas.attributes.height.value ;
+	renderer.setSize( w, h);
 	renderer.shadowMap.enabled = true;
-	document.body.appendChild( renderer.domElement );
-	//canvas.appendChild( scene );	
-
-
-	// Our Javascript will go here.
+	//document.body.appendChild( renderer.domElement );
+	
+	canvas.appendChild( renderer.domElement );	
 	var scene = new THREE.Scene();
-	var camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 5000 );
+	var camera = new THREE.PerspectiveCamera( 70, w / h, 0.1, 8000 );
 //	var camera = new THREE.PerspectiveCamera( 120, window.innerWidth / window.innerHeight, 0.1, 5000 );
 /*					THREE.OrthographicCamera(
 						  canvas.width / -2,
 						  canvas.width / 2,
 						  canvas.height / 2,
-						  canvas.height / -2, -500, 1000);*/
+						  canvas.height / -2, -500, 1000); */
 
+	var ground_size = 400;
 	camera.up.set(1, 0, 0); 
 	camera.zoom = 30;
-	camera.position.set(10, 30, 0);
+	camera.position.set(10, 1080, 0);
 	camera.lookAt(scene.position);
 	camera.updateProjectionMatrix();
 	scene.add(camera);
@@ -256,33 +255,32 @@ function do_inverse_kinematics( xyz, angle_set )
 	controls.dampingFactor = 0.25;
 	controls.screenSpacePanning = false;
 	controls.minDistance = 1;
-	controls.maxDistance = 4000
+	controls.maxDistance = 6000
 	controls.maxPolarAngle = Math.PI ;/// 2;
-		
-	
-	  const size = 20
-	  const step = 20
+
+	  const size = 20;
+	  const step = 20;
 	  const gridHelper = new THREE.GridHelper(size, step);
 	  gridHelper.rotation.x = 0;	gridHelper.rotation.y = 0;	gridHelper.rotation.z = 90/180.*Math.PI;
 	  scene.add(gridHelper);
 
 	  const axesHelper = new THREE.AxesHelper(5);
-	  scene.add(axesHelper);
+	  scene.add(axesHelper);	
 
-	
 
-	
+
 		var dirLight = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
-		dirLight.position.set( 200, 10, -40 ).normalize();
+		dirLight.position.set( ground_size, 10, 40 ).normalize();
 		dirLight.castShadow = true; 
 		dirLight.lookAt( scene.position );
-		//dirLight.shadowDarkness = 0.5;
-		
+		dirLight.shadowDarkness = 0.5;
 		//Set up shadow properties for the light
 		dirLight.shadow.mapSize.width = 512;  // default
 		dirLight.shadow.mapSize.height = 512; // default
 		dirLight.shadow.camera.near = 0.5;    // default
 		dirLight.shadow.camera.far = 1000;     // default
+		//dirLight.shadowCameraVisible = true;
+		scene.add( dirLight );
 		
 		var lightPosition4D = new THREE.Vector4();
 		lightPosition4D.x = dirLight.position.x;
@@ -292,30 +290,40 @@ function do_inverse_kinematics( xyz, angle_set )
 		// 0.001 = sunlight(min divergence) to 1.0 = pointlight(max divergence)
 		lightPosition4D.w = 0.001; // must be slightly greater than 0, due to 0 causing matrixInverse errors
 
-
-
-		//dirLight.shadowCameraVisible = true;
-		scene.add( dirLight );
-		
 		var pointLight = new THREE.PointLight( 0xffffff, 1.5 );
-		pointLight.position.set( 90, 100, 0 );
+		pointLight.position.set( 90, ground_size, -ground_size );
 		scene.add( pointLight );
+		
+		var pointLight1 = new THREE.PointLight( 0xffffff, 1.5 );
+		pointLight1.position.set( 90, ground_size, ground_size );
+		scene.add( pointLight1 );
 
-/*		var pointLight2 = new THREE.PointLight( 0xffffff, 1.5 );
-		pointLight2.position.set( 90, -100, 0 );
+		var pointLight2 = new THREE.PointLight( 0xffffff, 1.5 );
+		pointLight2.position.set( 90, -ground_size, -ground_size );
 		scene.add( pointLight2 );
 
 		var pointLight3 = new THREE.PointLight( 0xffffff, 1.5 );
-		pointLight3.position.set( 90, -100, 90 );
+		pointLight3.position.set( 90, -ground_size, ground_size );
 		scene.add( pointLight3 );
-*/
+
 </script>
-<script src="sim_objects.js"></script>
+
+<script src="sim_misc.js"    > </script>
+<script src="sim_stairway.js"> </script>
+<script src="sim_objects.js"     ></script>
+<script src="sim_door.js"    > </script>
+
+<script src="sim_wall.js"        ></script>
+
 <script src="arm_construction.js"></script>
-<script src="arm_gripper.js"></script>
-<script src="arm_servos.js"></script>	
+<script src="arm_gripper.js"     ></script>
+<script src="arm_servos.js"      ></script>	
 	
+<script src="sim_legs.js"   > </script>
 <script src="sim_bipedal.js"> </script>
+<script src="sim_bipedal_animator.js"> </script>
+<script src="sim_brick_wall.js"> </script>
+
 
 <script>
 
@@ -353,7 +361,7 @@ function do_inverse_kinematics( xyz, angle_set )
         chair.position.y = 0;
         chair.position.z = 0;   
         chair.rotation.z = -Math.PI /2;     
-        chair.scale.set( 7, 7, 7 );
+        chair.scale.set( 12, 12, 12 );
 	//	player.children[2].geometry.computeBoundingBox();
 		//chair.children[3].geometry.computeBoundingBox();
         //skin = collada.skins [ 0 ];
@@ -378,28 +386,6 @@ function do_inverse_kinematics( xyz, angle_set )
         //scene.add( door );
         });*/
 
-//	var d_texture = new THREE.TextureLoader().load( "./textures/door_carmelle.jpg" );
-	var d_texture = new THREE.TextureLoader().load( "./textures/door_milano_luna.jpg" );
-		
-	//d_texture.rotation = Math.PI/2;
-	
-	//d_texture.wrapS = THREE.RepeatWrapping;
-	//d_texture.wrapT = THREE.RepeatWrapping;
-	//d_texture.repeat.set( 4, 4 );
-	var door_depth = 0.5;
-	var door_width = 36;
-	var door_height = 84;
-	door_geom	= new THREE.BoxGeometry( door_depth,  door_height, door_width );
-	door_geom.translate(0, door_height/2, 0);
-	var door_material = new THREE.MeshBasicMaterial( { map: d_texture } );
-	var door_mesh     = new THREE.Mesh( door_geom, door_material );
-	door_mesh.position.x = -10;
-	door_mesh.scale.set(0.8, 0.8, 0.8);
-	door_mesh.rotation.y= Math.PI;
-	door_mesh.rotation.z= Math.PI/2;	
-	scene.add(door_mesh);
-			
-
 	var texture = new THREE.TextureLoader().load( "textures/sponge_wall_texture.jpg" );
 	
 //	texture.wrapS = THREE.RepeatWrapping;
@@ -420,8 +406,8 @@ function do_inverse_kinematics( xyz, angle_set )
 	shadowPlane.castShadow = false;
 	shadowPlane.renderOrder = - 1;
 		
-	var l = (get_total_arm_length() + 15)*10;
-	var groundGeometry = new THREE.BoxBufferGeometry( l, 0.01, l );
+
+	var groundGeometry = new THREE.BoxBufferGeometry( ground_size, 0.01, ground_size );
 //	var groundMaterial = new THREE.MeshLambertMaterial( { color: 'rgb(0,130,0)' } );
 	var groundMaterial = new THREE.MeshBasicMaterial( { map: texture } );	
 	groundMesh = new THREE.Mesh( groundGeometry, groundMaterial );
@@ -468,12 +454,12 @@ function do_inverse_kinematics( xyz, angle_set )
 	
 	var l_grip_fraction = 0.5;
 	var r_grip_fraction = 0.5;
-		var squat_angle = 0;
-			
+	var squat_angle =   0;
+	var frac		= 0.0;
+	var delta 		= 2.0 *Math.PI/180.;
+				
 	document.addEventListener("keydown", onDocumentKeyDown, false);
 	function onDocumentKeyDown(event) {
-		var delta = 2.0 *Math.PI/180.;
-
 		
 		var key = event.key;
 		if (key == 'd') 	   {			l_deg_servo_angle_set.Base += 2.0;
@@ -502,36 +488,52 @@ function do_inverse_kinematics( xyz, angle_set )
 		} else if (key == 'b') {	r_deg_servo_angle_set.WristRotate -= 2.0;	
 		} else if (key == 'B') {	r_deg_servo_angle_set.WristRotate += 2.0;
 
-		} else if (key == 'y') {			l_rad_leg_angle_set.Hip   += delta;
-		} else if (key == 'Y') {			l_rad_leg_angle_set.Hip   -= delta;
-		} else if (key == 'h') {			l_rad_leg_angle_set.Knee  += delta;
-		} else if (key == 'H') {			l_rad_leg_angle_set.Knee  -= delta;
-		} else if (key == 'n') {			l_rad_leg_angle_set.Ankle += delta;
-		} else if (key == 'N') {			l_rad_leg_angle_set.Ankle -= delta;
+		} else if (key == 'y') {	l_rad_leg_angle_set.Hip   += delta;
+		} else if (key == 'Y') {	l_rad_leg_angle_set.Hip   -= delta;
+		} else if (key == 'h') {	l_rad_leg_angle_set.Knee  += delta;
+		} else if (key == 'H') {	l_rad_leg_angle_set.Knee  -= delta;
+		} else if (key == 'n') {	l_rad_leg_angle_set.Ankle += delta;
+		} else if (key == 'N') {	l_rad_leg_angle_set.Ankle -= delta;
 
-		} else if (key == 'u') {			r_rad_leg_angle_set.Hip   += delta;
-		} else if (key == 'U') {			r_rad_leg_angle_set.Hip   -= delta;
-		} else if (key == 'j') {			r_rad_leg_angle_set.Knee  += delta;
-		} else if (key == 'J') {			r_rad_leg_angle_set.Knee  -= delta;
-		} else if (key == 'm') {			r_rad_leg_angle_set.Ankle += delta;
-		} else if (key == 'M') {			r_rad_leg_angle_set.Ankle -= delta;
+		} else if (key == 'u') {	r_rad_leg_angle_set.Hip   += delta;
+		} else if (key == 'U') {	r_rad_leg_angle_set.Hip   -= delta;
+		} else if (key == 'j') {	r_rad_leg_angle_set.Knee  += delta;
+		} else if (key == 'J') {	r_rad_leg_angle_set.Knee  -= delta;
+		} else if (key == 'm') {	r_rad_leg_angle_set.Ankle += delta;
+		} else if (key == 'M') {	r_rad_leg_angle_set.Ankle -= delta;
 
 		} else if (key == 'o') {	sit_pose();//		torso_mesh.rotation.y   += delta;
 		} else if (key == 'O') {	stand_pose();//		torso_mesh.rotation.y   -= delta;
 		} else if (key == 'l') {	squat_angle += delta; squat( Math.degrees(squat_angle) );//		torso_mesh.rotation.y   += delta;
 		} else if (key == 'L') {	squat_angle -= delta; squat( Math.degrees(squat_angle) );//		torso_mesh.rotation.y   -= delta;
 
-		} else if (key == '1') {	torso_mesh.position.y += 2; //leg_lift( "Left", Math.degrees(squat_angle) );//		torso_mesh.rotation.y   += delta;
-		} else if (key == '!') {	torso_mesh.position.y -= 2; //leg_lift( "Left", Math.degrees(squat_angle) );//		torso_mesh.rotation.y   -= delta;
-		} else if (key == '2') {	torso_mesh.position.z += 2; //leg_lift( "Left", Math.degrees(squat_angle) );//		torso_mesh.rotation.y   += delta;
-		} else if (key == '@') {	torso_mesh.position.z -= 2; //leg_lift( "Left", Math.degrees(squat_angle) );//		torso_mesh.rotation.y   -= delta;
+		} else if (key == '1') {	humanoid.position.y += 2; 
+		} else if (key == '!') {	humanoid.position.y -= 2;
+		} else if (key == '2') {	humanoid.position.z += 2;
+		} else if (key == '@') {	humanoid.position.z -= 2; 
 
+		} else if (key == '.') {  squat_angle += delta; 
+								  l_rad_leg_angle_set = leg_lift( Math.degrees(squat_angle) );
+								  set_common_leg_angles( "Left", l_rad_leg_angle_set );
+		} else if (key == '>') {  squat_angle -= delta; 
+								  l_rad_leg_angle_set = leg_lift( Math.degrees(squat_angle) );
+								  set_common_leg_angles( "Left", l_rad_leg_angle_set );								  
 
-		} else if (key == '.') {	squat_angle += delta; leg_lift( "Left", Math.degrees(squat_angle) );//		torso_mesh.rotation.y   += delta;
-		} else if (key == '>') {	squat_angle -= delta; leg_lift( "Left", Math.degrees(squat_angle) );//		torso_mesh.rotation.y   -= delta;
+		} else if (key == 'z') {  open_door_fraction( frac, 0 );		frac += 0.05; if (frac>1.0) frac=1.0;
+		} else if (key == 'Z') {  open_door_fraction( frac, 0 );		frac -= 0.05; if (frac<0) frac=0;
 
-		} else if (key == 'p') {			torso_mesh.rotation.z  += delta;
-		} else if (key == 'P') {			torso_mesh.rotation.z  -= delta;
+		} else if (key == 'p') {  torso_mesh.rotation.z  += delta;
+		} else if (key == 'P') {  torso_mesh.rotation.z  -= delta;
+		} else if (key == '9') {  lay_next_brick( BrickWall );
+		} else if (key == '8') {  walk_up_stairs();
+		} else if (key == '=') {  torso_mesh.rotation.z  -= delta;
+
+			camera.position.set(torso_mesh.position.x+40, torso_mesh.position.y, torso_mesh.position.z);
+//			camera.lookAt(scene.position);
+			camera.rotation.x = torso_mesh.rotation.z;
+			camera.rotation.y = torso_mesh.rotation.y;
+			camera.rotation.z = torso_mesh.rotation.x;
+			camera.updateProjectionMatrix();
 
 		} else if (key == ' ') {
 			l_deg_servo_angle_set.Base 	= 0.0;
@@ -545,13 +547,21 @@ function do_inverse_kinematics( xyz, angle_set )
 			r_deg_servo_angle_set.Wrist = 0.0;			
 		}
 		set_servo_angles_degrees( "left",  l_deg_servo_angle_set );
-		set_servo_angles_degrees( "right", r_deg_servo_angle_set );		
+		set_servo_angles_degrees( "right", r_deg_servo_angle_set );	
+			
 		populate_angle_table(l_deg_servo_angle_set, 1);
 		populate_angle_table(r_deg_servo_angle_set, 2);
+
+		var new_angle_set = Object.assign( {}, l_rad_leg_angle_set);
+		convert_to_common_angle_set( new_angle_set );
+		adjust_torso_to_stance_leg( 32, new_angle_set );
+				
+		set_leg_angles( l_rad_leg_angle_set );
+		set_leg_angles( r_rad_leg_angle_set );		
+
 		
-		set_leg_angles( l_rad_leg_angle_set, l_leg_meshes );
-		set_leg_angles( r_rad_leg_angle_set, r_leg_meshes );		
-		
+
+				
 	};			
 		
 </script>

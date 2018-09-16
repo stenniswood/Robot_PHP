@@ -290,7 +290,7 @@ function simulate_path()
 	
 	var time_period_ms = path_speed.value;
 	path_point_index = 0;
-	simTimer = window.setInterval( arm_path_execution, time_period_ms );	
+	simTimer = window.setInterval( sim_execution, time_period_ms );	
 }
 
 function add_path_to_sequencer()
