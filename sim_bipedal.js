@@ -12,8 +12,8 @@ var humanoid;
 
 function construct_head()
 {		
-	head_geoms = new THREE.SphereBufferGeometry( head_radius,  head_radius,  20, 20 );
-	head_mesh     = new THREE.Mesh( head_geoms,   leg_material.bone_material );
+	head_geoms = new THREE.SphereGeometry( head_radius, 20, 20 );
+	head_mesh  = new THREE.Mesh( head_geoms, leg_material.bone_material );
 }
 
 function construct_humanoid()
@@ -22,26 +22,26 @@ function construct_humanoid()
 	
 	var torso_geom = new THREE.BoxGeometry( torso_size.depth, torso_size.width, torso_size.length  );
 	torso_mesh     = new THREE.Mesh( torso_geom,   leg_material.bone_material );
-	torso_geom.translate( 0, 0, -torso_size.length/2 );
-	
+	//torso_geom.translate( 0, 0, -torso_size.length/2 );	
 	//l_leg_meshes.upper_leg.rotation.x = Math.PI;
 	//r_leg_meshes.upper_leg.rotation.x = Math.PI;
+	
 	head_mesh.position.x = 0;
 	head_mesh.position.y = 0;
-	head_mesh.position.z = -torso_size.length-head_radius;
+	head_mesh.position.z = -torso_size.length/2-head_radius;
 	
 	torso_mesh.add( head_mesh );
 	torso_mesh.add( l_arm_meshes.shoulder );
-	torso_mesh.add( r_arm_meshes.shoulder );	
-	
+	torso_mesh.add( r_arm_meshes.shoulder );		
 	torso_mesh.add( l_leg_meshes.hip );
 	torso_mesh.add( r_leg_meshes.hip );	
+	
 	torso_mesh.position.y = 0;
 	torso_mesh.position.z = -get_height_robot_space( l_rad_leg_angle_set, torso_mesh.rotation.y );
 		
 	humanoid = new THREE.Group();		// humanoid is a shell which will hold it's relations to world coordinates.
 	humanoid.add(torso_mesh);
-	humanoid.rotation.y = -Math.PI/2;
+//	humanoid.rotation.y = -Math.PI/2;
 	humanoid.position.x = -10;
 	scene.add( humanoid );
 }
@@ -51,23 +51,26 @@ function place_legs()
 {
 	l_leg_meshes.hip.position.x 		= 0;
 	l_leg_meshes.hip.position.y 		= torso_size.width/2-leg_sizes.hip_radius;
-	l_leg_meshes.hip.position.z 		= 0;
+	l_leg_meshes.hip.position.z 		= torso_size.length/2;
 
 	r_leg_meshes.hip.position.x 		= 0;
 	r_leg_meshes.hip.position.y 		= -torso_size.width/2+leg_sizes.hip_radius;
-	r_leg_meshes.hip.position.z 		= 0;
+	r_leg_meshes.hip.position.z 		= torso_size.length/2;
 }
 function place_arms()
 {
 	l_arm_meshes.shoulder.position.x 		= 0;
 	l_arm_meshes.shoulder.position.y 		= torso_size.width/2+arm_sizes.upper_arm_width;
-	l_arm_meshes.shoulder.position.z 		= arm_sizes.shoulder_radius-torso_size.length;
+	l_arm_meshes.shoulder.position.z 		= arm_sizes.shoulder_radius-torso_size.length/2;
 	l_arm_meshes.shoulder.rotation.x = 90* Math.PI/180;
 
 	r_arm_meshes.shoulder.position.x 		= 0;
 	r_arm_meshes.shoulder.position.y 		= -torso_size.width/2-arm_sizes.upper_arm_width;
-	r_arm_meshes.shoulder.position.z 		= arm_sizes.shoulder_radius-torso_size.length;
+	r_arm_meshes.shoulder.position.z 		= arm_sizes.shoulder_radius-torso_size.length/2;
 	r_arm_meshes.shoulder.rotation.x = 90* Math.PI/180;	
+	
+	l_arm_meshes.wrist.add( l_grip_meshes.wrist );
+	r_arm_meshes.wrist.add( r_grip_meshes.wrist );
 }
 
 
@@ -193,10 +196,19 @@ function sim_actuate_angle_set( angle_set )
 	}
 }
 
+function convert_robot_to_world_space(robot_xyz)
+{
+	var world_xyz = robot_xyz.clone();
+	return torso_mesh.localToWorld( world_xyz );	
+	
+}
+
 function convert_world_to_robot_space(world_xyz)
 {
 	var robot_xyz = world_xyz.clone();
-	torso_mesh.localToWorld( robot_xyz );	
+	humanoid.updateMatrixWorld();
+	humanoid.worldToLocal( robot_xyz );		
+	return torso_mesh.worldToLocal( robot_xyz );
 }
 
 function convert_robot_to_left_arm(robot_xyz)
@@ -261,8 +273,10 @@ function generate_hand_path(  )
 //	return path;
 }
 
+construct_humanoid();
 place_legs();
 place_arms();
 
-construct_humanoid();
+torso_mesh.position.x = 10;
+
 

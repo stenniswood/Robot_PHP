@@ -1,5 +1,7 @@
 
 <?php
+	$deviceInfo = [];
+
 	// Scans /dev/ directory for all ttyACM* and ttyUSB* devices.
 	function ScanDevices() 
 	{
@@ -228,6 +230,7 @@ EOT;
 	OpenDevices();
 	GetDevicesTypeAndStatus();
 	CloseDevices();
+
 
 	$drive_fives = GetAllofAKind( "DriveFive");
 	$load_cells  = GetAllofAKind( "Load cell");

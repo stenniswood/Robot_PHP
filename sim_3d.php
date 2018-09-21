@@ -28,6 +28,10 @@
 }
 </style>
 
+<div id='viewport' > </div>
+
+<span id="arm_sim_canvas" style="border: none; width:1200; heigh:480;" width="1200" height="480"></span>
+
 <fieldset>
 XYZ:<input id='xyz'></input>
 <button id='move_left'  onclick="activate('left')" >Left</button>
@@ -104,7 +108,7 @@ XYZ is to :
 </fieldset>
 
 
-<span id="arm_sim_canvas" style="border: none; width:1200; heigh:480;" width="1200" height="480"></span>
+<script src="sim_lights.js" ></script>
 <script src="./three.js/examples/js/loaders/ColladaLoader.js" ></script>
 <?php include "arm_presets.php" ?>
 
@@ -218,9 +222,19 @@ function do_inverse_kinematics( xyz, angle_set )
 }
 </script>
 
+<script type="text/javascript" src="../physics/examples/js/stats.js"></script>
+<script type="text/javascript" src="../physics/physi.js"></script>
 
 
 <script>
+	'use strict';
+	
+	Physijs.scripts.worker = '../physics/physijs_worker.js';
+	Physijs.scripts.ammo   = '../physics/examples/js/ammo.js';
+
+	// Loader
+	var texture_loader = new THREE.TextureLoader();
+
 	var canvas = document.getElementById("arm_sim_canvas");
 	//document.body.appendChild( canvas );
 
@@ -232,7 +246,24 @@ function do_inverse_kinematics( xyz, angle_set )
 	//document.body.appendChild( renderer.domElement );
 	
 	canvas.appendChild( renderer.domElement );	
-	var scene = new THREE.Scene();
+	//var scene = new THREE.Scene();
+	var	scene = new Physijs.Scene;
+	scene.setGravity(new THREE.Vector3( -30, 0, 0 ));
+	scene.addEventListener(
+			'update',
+			function() {
+				scene.simulate( undefined, 1 );
+				//physics_stats.update();
+			}
+		); 
+
+/*	var physics_stats = new Stats();
+	physics_stats.domElement.style.position = 'absolute';
+	physics_stats.domElement.style.top = '50px';
+	physics_stats.domElement.style.zIndex = 100;
+	document.getElementById( 'viewport' ).appendChild( physics_stats.domElement );
+*/		
+
 	var camera = new THREE.PerspectiveCamera( 70, w / h, 0.1, 8000 );
 //	var camera = new THREE.PerspectiveCamera( 120, window.innerWidth / window.innerHeight, 0.1, 5000 );
 /*					THREE.OrthographicCamera(
@@ -241,14 +272,17 @@ function do_inverse_kinematics( xyz, angle_set )
 						  canvas.height / 2,
 						  canvas.height / -2, -500, 1000); */
 
-	var ground_size = 400;
+	var ground_size = 1024;
 	camera.up.set(1, 0, 0); 
-	camera.zoom = 30;
-	camera.position.set(10, 1080, 0);
-	camera.lookAt(scene.position);
+	camera.zoom = 10;
+	camera.position.set(100, 0, 1000);
+	var pos = scene.position;
+	//pos.x += 550;
+	camera.lookAt(pos);
 	camera.updateProjectionMatrix();
 	scene.add(camera);
 	scene.background = new THREE.Color( 0x0096ff );
+
 
 	var controls = new THREE.OrbitControls( camera, renderer.domElement );
 	controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
@@ -268,52 +302,16 @@ function do_inverse_kinematics( xyz, angle_set )
 	  scene.add(axesHelper);	
 
 
-
-		var dirLight = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
-		dirLight.position.set( ground_size, 10, 40 ).normalize();
-		dirLight.castShadow = true; 
-		dirLight.lookAt( scene.position );
-		dirLight.shadowDarkness = 0.5;
-		//Set up shadow properties for the light
-		dirLight.shadow.mapSize.width = 512;  // default
-		dirLight.shadow.mapSize.height = 512; // default
-		dirLight.shadow.camera.near = 0.5;    // default
-		dirLight.shadow.camera.far = 1000;     // default
-		//dirLight.shadowCameraVisible = true;
-		scene.add( dirLight );
+	init_directional_lights();
+	init_point_lights();
 		
-		var lightPosition4D = new THREE.Vector4();
-		lightPosition4D.x = dirLight.position.x;
-		lightPosition4D.y = dirLight.position.y;
-		lightPosition4D.z = dirLight.position.z;
-		// amount of light-ray divergence. Ranging from:
-		// 0.001 = sunlight(min divergence) to 1.0 = pointlight(max divergence)
-		lightPosition4D.w = 0.001; // must be slightly greater than 0, due to 0 causing matrixInverse errors
-
-		var pointLight = new THREE.PointLight( 0xffffff, 1.5 );
-		pointLight.position.set( 90, ground_size, -ground_size );
-		scene.add( pointLight );
-		
-		var pointLight1 = new THREE.PointLight( 0xffffff, 1.5 );
-		pointLight1.position.set( 90, ground_size, ground_size );
-		scene.add( pointLight1 );
-
-		var pointLight2 = new THREE.PointLight( 0xffffff, 1.5 );
-		pointLight2.position.set( 90, -ground_size, -ground_size );
-		scene.add( pointLight2 );
-
-		var pointLight3 = new THREE.PointLight( 0xffffff, 1.5 );
-		pointLight3.position.set( 90, -ground_size, ground_size );
-		scene.add( pointLight3 );
-
 </script>
 
 <script src="sim_misc.js"    > </script>
 <script src="sim_stairway.js"> </script>
-<script src="sim_objects.js"     ></script>
+<script src="sim_objects.js" > </script>
 <script src="sim_door.js"    > </script>
-
-<script src="sim_wall.js"        ></script>
+<script src="sim_wall.js"    > </script>
 
 <script src="arm_construction.js"></script>
 <script src="arm_gripper.js"     ></script>
@@ -326,25 +324,6 @@ function do_inverse_kinematics( xyz, angle_set )
 
 
 <script>
-
-
-	function init_grippers() {
-		construct_gripper(l_grip_geom, l_grip_meshes, arm_material.meshMaterialJ,  arm_material.meshMaterial  );
-		construct_gripper(r_grip_geom, r_grip_meshes, arm_material.rmeshMaterialJ,  arm_material.rmeshMaterial );
-		init_grip_locations();
-
-		l_grip_meshes.wrist.position.z = arm_sizes.wrist_length;
-		r_grip_meshes.wrist.position.z = arm_sizes.wrist_length;
-		l_arm_meshes.wrist.add( l_grip_meshes.wrist );
-		r_arm_meshes.wrist.add( r_grip_meshes.wrist );
-		
-		//add_to_scene( l_grip_meshes );
-		//add_to_scene( r_grip_meshes );
-
-		create_grip_shadow_meshes(l_grip_meshes);
-		create_grip_shadow_meshes(r_grip_meshes);
-	}
-	init_grippers();
 
 	set_servo_angles_degrees( "left",  l_deg_servo_angle_set );
 	set_servo_angles_degrees( "right", r_deg_servo_angle_set );
@@ -359,7 +338,7 @@ function do_inverse_kinematics( xyz, angle_set )
         chair.children[4].visible = false;                        
         chair.position.x = -10;
         chair.position.y = 0;
-        chair.position.z = 0;   
+        chair.position.z = -200;   
         chair.rotation.z = -Math.PI /2;     
         chair.scale.set( 12, 12, 12 );
 	//	player.children[2].geometry.computeBoundingBox();
@@ -386,34 +365,34 @@ function do_inverse_kinematics( xyz, angle_set )
         //scene.add( door );
         });*/
 
-	var texture = new THREE.TextureLoader().load( "textures/sponge_wall_texture.jpg" );
-	
-//	texture.wrapS = THREE.RepeatWrapping;
-//	texture.wrapT = THREE.RepeatWrapping;
-//	texture.repeat.set( 4, 4 );
-	// Add Floor:	
-//	var floor_geometry = new THREE.PlaneGeometry( 3*20, 3*20, 32 );
 
-//	var material = new THREE.MeshBasicMaterial( { map: texture } );	
-//	var groundMaterial = new THREE.MeshLambertMaterial( { color: 'rgb(0,130,0)' } );
-//	var plane = new THREE.Mesh( floor_geometry, groundMaterial );
-
-
+	// Shadow Plane : 
 	var normalVector = new THREE.Vector3( 1, 0, 0 );
 	var planeConstant = -9.9; // this value must be slightly higher than the groundMesh's y position of 0.0
 	var shadowPlane = new THREE.Plane( normalVector, planeConstant );
 	shadowPlane.receiveShadow = true;
 	shadowPlane.castShadow = false;
 	shadowPlane.renderOrder = - 1;
-		
 
-	var groundGeometry = new THREE.BoxBufferGeometry( ground_size, 0.01, ground_size );
-//	var groundMaterial = new THREE.MeshLambertMaterial( { color: 'rgb(0,130,0)' } );
-	var groundMaterial = new THREE.MeshBasicMaterial( { map: texture } );	
-	groundMesh = new THREE.Mesh( groundGeometry, groundMaterial );
-	groundMesh.position.x = -10.0; //this value must be slightly lower than the planeConstant (0.01) parameter above
+	// NOW THE GROUND : 
+	//var texture = texture_loader.load( "textures/sponge_wall_texture.jpg" );	
+	//var texture = texture_loader.load( "../physics/examples/images/rocks.jpg" );
+	var texture = texture_loader.load( "../physics/examples/images/grass.png" );
+	var groundGeometry = new THREE.BoxGeometry( ground_size, 5.01, ground_size );	
+	var groundMaterial = new THREE.MeshLambertMaterial( { map: texture } );	
+	p_groundMaterial = Physijs.createMaterial( groundMaterial,
+		.8, // high friction
+		.3 // low restitution
+	);
+	groundMaterial.map.wrapS = groundMaterial.map.wrapT = THREE.RepeatWrapping;
+	groundMaterial.map.repeat.set( 2, 2 );
+
+	var groundMesh = new Physijs.BoxMesh( groundGeometry, p_groundMaterial, 0 ); // mass
+	groundMesh.receiveShadow = true;
+	groundMesh.position.x = -9.9; //this value must be slightly lower than the planeConstant (0.01) parameter above
 	groundMesh.rotation.z = 90/180.*Math.PI;
 	scene.add( groundMesh );
+
 
 	function update_shadows(arm_meshes, grip_meshes, leg_meshes)
 	{
@@ -437,17 +416,15 @@ function do_inverse_kinematics( xyz, angle_set )
 	}
 		
 	function animate() {
-		requestAnimationFrame( animate );
+		scene.simulate();
 		controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
 		update_shadows(l_arm_meshes, l_grip_meshes, l_leg_meshes );
 		update_shadows(r_arm_meshes, r_grip_meshes, r_leg_meshes );
 		smeshes.forEach( (variable,index) => {
 			variable.update( shadowPlane, lightPosition4D);
 		});
-		 
-
-		//set_servo_angles( BaseDeg, ShoulderDeg, ElbowDeg );				
 		renderer.render( scene, camera );
+		requestAnimationFrame( animate );
 	}
 
 	animate();						
@@ -554,15 +531,26 @@ function do_inverse_kinematics( xyz, angle_set )
 
 		var new_angle_set = Object.assign( {}, l_rad_leg_angle_set);
 		convert_to_common_angle_set( new_angle_set );
-		adjust_torso_to_stance_leg( 32, new_angle_set );
+		//adjust_torso_to_stance_leg( 32, new_angle_set );
 				
 		set_leg_angles( l_rad_leg_angle_set );
 		set_leg_angles( r_rad_leg_angle_set );		
 
-		
-
+		var zero_vec = new THREE.Vector3(humanoid.position.x,humanoid.position.y,humanoid.position.z);
+		//var w_vec = convert_robot_to_world_space( zero_vec );
+		var w_vec = convert_world_to_robot_space( zero_vec );
+		var str = "Robot: <";
+		str += w_vec.x +", "+ w_vec.y +", "+ w_vec.z+"> ";		
+		r_object_grab_feedback.innerHTML = str;
 				
 	};			
+
+// OLD, Non-Physics way : 
+//  var groundMesh = new THREE.Mesh( groundGeometry, groundMaterial );
+//	texture.wrapS = THREE.RepeatWrapping;
+//	texture.wrapT = THREE.RepeatWrapping;
+//	texture.repeat.set( 4, 4 );
+//	
 		
 </script>
 

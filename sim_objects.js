@@ -8,10 +8,10 @@ var box_sizes = [
 	{	length:2, width:4,  depth:2 },	
 ];
 var box_locations = [
-	{	x:-10, y:-10, z:20 },
-	{	x:-10, y:-7, z:10 },
-	{	x:-10, y:+7, z:+15 },
-	{	x:-10, y:-17, z:10 },	
+	{	x:-10+75, y:+10, z:20 },
+	{	x:-10+75, y:+7,  z:10 },
+	{	x:-10+75, y:+7,  z:+15 },
+	{	x:-10+75, y:+17, z:25 },	
 ];
 var sphere_sizes = [
 	{	radius:2.2,  widthsegs:10,  heightsegs:10 },
@@ -20,23 +20,23 @@ var sphere_sizes = [
 	{	radius:0.5,  widthsegs:5,   heightsegs:5 },	
 ];
 var sphere_locations = [
-	{	x:-10, y:10, z:-15 },
-	{	x:-10, y:17, z:-10 },
-	{	x:-10, y:15,  z:0 },
-	{	x:-10, y:15, z:15 },	
-];
+	{	x:-10+100, y:-54, z:-100 },
+	{	x:-10+100, y:-64, z:-100 },
+	{	x:-10+75 , y:15, z: 0 },
+	{	x:-10+75 , y:15, z:15 },	
+]; 
 
 var cylinder_sizes = [
-	{	b_radius:0.75, t_radius:1, height:5  },
-	{	b_radius:2,    t_radius:4, height:10  },
-	{	b_radius:0.5,  t_radius:0.5,  height:7  },
-	{	b_radius:1.5,  t_radius:2,  height:5   },	
+	{	b_radius:0.75,  t_radius:1, height:5    },
+	{	b_radius:2   ,  t_radius:4, height:10   },
+	{	b_radius:0.5 ,  t_radius:0.5,  height:7 },
+	{	b_radius:1.5 ,  t_radius:2,  height:5   },	
 ];
 var cylinder_locations = [
-	{	x:-10, y:15, z:-23 },
-	{	x:-10, y:-12,  z:-10 },
-	{	x:-10, y:5,  z:-5 },
-	{	x:-10, y:15,  z:-5 },	
+	{	x:-10+75, y:15, z:-23 },
+	{	x:-10+75, y:-12,  z:-10 },
+	{	x:-10+75, y:5,  z:-5 },
+	{	x:-10+75, y:15,  z:-5 },	
 ];
 
 
@@ -56,41 +56,60 @@ var obj_3_emissive = 0x459239;
 
 function make_object_materials()
 {
-	object_materials.obj = [];
-	object_materials.obj[1] = new THREE.MeshPhongMaterial( { color: obj_1_color, emissive: obj_1_emissive, side: THREE.DoubleSide, flatShading: true } );
-	object_materials.obj[2] = new THREE.MeshPhongMaterial( { color: obj_2_color, emissive: obj_2_emissive, side: THREE.DoubleSide, flatShading: true } );
-	object_materials.obj[3] = new THREE.MeshLambertMaterial( { color: obj_3_color, emissive: obj_3_emissive, wireframe: false } );
+	object_materials.mat = [];		// Raw Coloring material
+	object_materials.mat[0] = new THREE.MeshPhongMaterial  ( { color: obj_1_color, emissive: obj_1_emissive, side: THREE.DoubleSide, flatShading: true } );
+	object_materials.mat[1] = new THREE.MeshPhongMaterial  ( { color: obj_2_color, emissive: obj_2_emissive, side: THREE.DoubleSide, flatShading: true } );
+	object_materials.mat[2] = new THREE.MeshLambertMaterial( { color: obj_3_color, emissive: obj_3_emissive, wireframe: false } );
+	object_materials.mat[3] = new THREE.MeshLambertMaterial( { map: texture_loader.load( '../physics/examples/images/plywood.jpg' ) });
+	object_materials.mat[4] = new THREE.MeshLambertMaterial( { map: texture_loader.load( './textures/cinder-block-texture.jpg' ) });
 
-	object_materials.meshMaterial  = new THREE.MeshPhongMaterial( { color: obj_1_color, emissive: obj_1_emissive, side: THREE.DoubleSide, flatShading: true } );
-	object_materials.meshMaterialJ = new THREE.MeshPhongMaterial( { color: obj_2_color, emissive: obj_2_emissive, side: THREE.DoubleSide, flatShading: true } );
-	object_materials.joint_material = new THREE.MeshLambertMaterial( { color: obj_3_color, wireframe: false } );
+	object_materials.pmat = [];		// Physical material
+	object_materials.pmat[0] = Physijs.createMaterial( object_materials.mat[0], .9 /* medium friction */, .4 /* low restitution */	);
+	object_materials.pmat[1] = Physijs.createMaterial( object_materials.mat[1], .8 /* medium friction */, .2 /* low restitution */	);
+	object_materials.pmat[2] = Physijs.createMaterial( object_materials.mat[2], .6 /* medium friction */, .6 /* low restitution */	);
+	object_materials.pmat[3] = Physijs.createMaterial( object_materials.mat[3], .6 /* medium friction */, .3 /* low restitution */	);
+	object_materials.pmat[4] = Physijs.createMaterial( object_materials.mat[4], .6 /* medium friction */, .3 /* low restitution */	);		
 
+	object_materials.pmat[3].map.wrapS = object_materials.pmat[3].map.wrapT = THREE.RepeatWrapping;
+	object_materials.pmat[3].map.repeat.set( 1.0, 1.0 );	
+	object_materials.pmat[4].map.wrapS = object_materials.pmat[3].map.wrapT = THREE.RepeatWrapping;
+	object_materials.pmat[4].map.repeat.set( 1.0, 1.0 );
 }
+
 function construct_objects(geoms, meshes )
 {
 	var mindex=0;
 	box_sizes.forEach( (variable, index) => {
-			geoms[index]	= new THREE.BoxGeometry( variable.depth,  variable.width,  variable.length );			
-			geoms[index].translate ( variable.depth/2, 0, 0 );
-			meshes[index]  = new THREE.Mesh( geoms[index],   object_materials.obj[index%3] );			
+			geoms[index]   = new THREE.BoxGeometry( variable.depth,  variable.width,  variable.length );
+			//geoms[index].translate ( variable.depth/2, 0, 0 );
+
+			meshes[index] = new Physijs.BoxMesh( geoms[index], object_materials.pmat[index%5], 10 ); // mass
+			//meshes[index]  = new THREE.Mesh( geoms[index],   object_materials.obj[index%3] );
 			meshes[index].position.x 	= box_locations[index].x;
 			meshes[index].position.y 	= box_locations[index].y;
-			meshes[index].position.z 	= box_locations[index].z;			
+			meshes[index].position.z 	= box_locations[index].z;	
+			meshes[index].__dirtyPosition = true;		
 	});
+
 	sphere_sizes.forEach( (variable,index) => {
 			mindex = box_sizes.length + index;
-			geoms[mindex]	= new THREE.SphereBufferGeometry( variable.radius,  variable.widthsegs,  variable.heightsegs );
-			geoms[mindex].translate ( variable.radius, 0, 0);
-			meshes[mindex]  = new THREE.Mesh( geoms[mindex],   object_materials.obj[index%3] );
+			geoms[mindex]	= new THREE.SphereGeometry( variable.radius,  variable.widthsegs,  variable.heightsegs );
+			//geoms[mindex].translate ( variable.radius, 0, 0);
+
+			meshes[mindex] = new Physijs.SphereMesh( geoms[mindex], object_materials.pmat[index%5], 20 );
+			//meshes[index] = new Physijs.BoxMesh( geoms[index], object_materials.pmat[index%5], 0 ); // mass			
+			//meshes[mindex]  = new THREE.Mesh( geoms[mindex],   object_materials.mat[index%3] );
 			meshes[mindex].position.x 	= sphere_locations[index].x;
 			meshes[mindex].position.y 	= sphere_locations[index].y;
 			meshes[mindex].position.z 	= sphere_locations[index].z;
+			meshes[mindex].__dirtyPosition = true;					
 	});
 	cylinder_sizes.forEach( (variable,index) => {
 			mindex = box_sizes.length + sphere_sizes.length + index;	
 			geoms[mindex]	= new THREE.CylinderGeometry( variable.b_radius, variable.b_radius, variable.height );
-			geoms[mindex].translate ( variable.b_radius, 0, 0 );			
-			meshes[mindex]  = new THREE.Mesh( geoms[mindex],   object_materials.obj[index%3] );
+			//geoms[mindex].translate ( variable.b_radius, 0, 0 );			
+			meshes[mindex]  = new Physijs.CylinderMesh( geoms[mindex],   object_materials.pmat[index%3], 20 );
+			
 			meshes[mindex].position.x 	= cylinder_locations[index].x;
 			meshes[mindex].position.y 	= cylinder_locations[index].y;
 			meshes[mindex].position.z 	= cylinder_locations[index].z;
@@ -501,7 +520,7 @@ for (omi=0; omi<6; omi++)
 for (omi=6; omi<12; omi++)
 	place_on_top_of( object_meshes[omi], table[0] );
 
-
+object_meshes[5].setLinearVelocity( new THREE.Vector3(0, -200, 0) );
 
 
 

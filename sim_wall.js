@@ -110,6 +110,7 @@ function construct_room(length,width)
 
 make_wall_materials();
 
+/*
 //construct_wall(20*12, walls[0] );
 var r_index = construct_room(12,14);
 rooms[r_index].position.x = -10;
@@ -129,7 +130,7 @@ rooms[r_index].position.x = -10;
 rooms[r_index].position.y = 00;
 rooms[r_index].position.z = 200;
 //add_door( 5, pos_length );
-
+*/
 //position_walls();
 
 // Here b/c stairway needs to know thickness of wall for proper positioning:

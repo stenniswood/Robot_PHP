@@ -7,6 +7,15 @@ table_sizes = {
 
 	leg_width: 2,
 };
+round_table_sizes = {
+	radius  : 38,
+	pole_radius : 2,
+	height : 30,
+	
+	foot_width  : 0.5,
+	foot_height : 1.5,
+};
+
 
 var table = [];
 var table_material;
@@ -36,61 +45,86 @@ var knob_connector_mesh =[];
 function make_misc_materials()
 {
 //	d_texture = new THREE.TextureLoader().load( "./textures/table_carmelle.jpg" );
+	d_texture = texture_loader.load( "../physics/examples/images/wood.jpg" );
 
 //	t_texture       = new THREE.TextureLoader().load( "./textures/table_milano_luna.jpg" );
-	table_material  = new THREE.MeshBasicMaterial( { map: d_texture } );
-	table_leg_material    = new THREE.MeshPhongMaterial( { color: 0xEFEFEF, emissive: 0xFFEFDF, side: THREE.DoubleSide, wireframe:true, flatShading: false } );	
+	table_material     = new THREE.MeshBasicMaterial( { map: d_texture } );
+	//table_leg_material = new THREE.MeshPhongMaterial( { color: 0xEFEFEF, emissive: 0xFFEFDF, side: THREE.DoubleSide, wireframe:true, flatShading: false } );	
+	table_leg_material = new THREE.MeshPhongMaterial( { map: d_texture, side: THREE.DoubleSide, flatShading: false } );	
+	
+	ptable_material     = Physijs.createMaterial( table_material, .9 /* medium friction */, .3 /* low restitution */	);	
+	ptable_leg_material = Physijs.createMaterial( table_material, .9 /* medium friction */, .6 /* low restitution */	);
 }
 
 function construct_table(table_index)
 {
 	// Make Table TOP : 
 	table_geom[table_index]  = new THREE.BoxGeometry( table_sizes.depth, table_sizes.width, table_sizes.length );
-	table_mesh[table_index]  = new THREE.Mesh       ( table_geom[table_index], table_material );
+	table_mesh[table_index]  = new Physijs.BoxMesh  ( table_geom[table_index], ptable_material, 30 );
 
-	table_geom[table_index].translate( table_sizes.depth/2, table_sizes.width/2, table_sizes.length/2 );
+	//table_geom[table_index].translate( table_sizes.depth/2, table_sizes.width/2, table_sizes.length/2 );
 	//table_mesh[table_index].rotation.y = Math.PI/2;
-	table_mesh[table_index].position.x = table_sizes.height;
-	//table_mesh[table_index].position.y = table_sizes.;
+
+	table_mesh[table_index].position.x = table_sizes.height/2;		// zero is middle height of the legs.
+	table_mesh[table_index].position.y = table_sizes.width/2;
+	table_mesh[table_index].position.z = table_sizes.length/2-table_sizes.leg_width/2;
+	table_mesh[table_index].__dirtyPosition = true;
 
 	// Make 4 Legs:
 	leg1_geom[table_index]  = new THREE.BoxGeometry( table_sizes.height, table_sizes.leg_width, table_sizes.leg_width );
-	leg1_mesh[table_index]  = new THREE.Mesh       ( leg1_geom[table_index], table_leg_material );
+	leg1_mesh[table_index]  = new Physijs.BoxMesh  ( leg1_geom[table_index], ptable_leg_material, 5 );
 
 	leg2_geom[table_index]  = new THREE.BoxGeometry( table_sizes.height, table_sizes.leg_width, table_sizes.leg_width );
-	leg2_mesh[table_index]  = new THREE.Mesh       ( leg2_geom[table_index], table_leg_material );
+	leg2_mesh[table_index]  = new Physijs.BoxMesh  ( leg2_geom[table_index], ptable_leg_material, 5 );
 
 	leg3_geom[table_index]  = new THREE.BoxGeometry( table_sizes.height, table_sizes.leg_width, table_sizes.leg_width );
-	leg3_mesh[table_index]  = new THREE.Mesh       ( leg3_geom[table_index], table_leg_material );
+	leg3_mesh[table_index]  = new Physijs.BoxMesh  ( leg3_geom[table_index], ptable_leg_material, 5 );
 
 	leg4_geom[table_index]  = new THREE.BoxGeometry( table_sizes.height, table_sizes.leg_width, table_sizes.leg_width );
-	leg4_mesh[table_index]  = new THREE.Mesh       ( leg4_geom[table_index], table_leg_material );
+	leg4_mesh[table_index]  = new Physijs.BoxMesh  ( leg4_geom[table_index], ptable_leg_material, 5 );
 
-	leg1_geom[table_index].translate( +table_sizes.height/2, table_sizes.leg_width/2, table_sizes.leg_width/2 );
-	leg2_geom[table_index].translate( +table_sizes.height/2, table_sizes.leg_width/2, table_sizes.leg_width/2 );
-	leg3_geom[table_index].translate( +table_sizes.height/2, table_sizes.leg_width/2, table_sizes.leg_width/2 );
-	leg4_geom[table_index].translate( +table_sizes.height/2, table_sizes.leg_width/2, table_sizes.leg_width/2 );
-				
+	//leg1_geom[table_index].translate( +table_sizes.height/2, table_sizes.leg_width/2, table_sizes.leg_width/2 );
+	//leg2_geom[table_index].translate( +table_sizes.height/2, table_sizes.leg_width/2, table_sizes.leg_width/2 );
+	//leg3_geom[table_index].translate( +table_sizes.height/2, table_sizes.leg_width/2, table_sizes.leg_width/2 );
+	//leg4_geom[table_index].translate( +table_sizes.height/2, table_sizes.leg_width/2, table_sizes.leg_width/2 );
+
+	leg1_mesh[table_index].position.x = 0;
+	leg2_mesh[table_index].position.x = 0;
+	leg3_mesh[table_index].position.x = 0;
+	leg4_mesh[table_index].position.x = 0;
+
 	leg1_mesh[table_index].position.y = 0;
 	leg2_mesh[table_index].position.y = 0;
-	leg3_mesh[table_index].position.y = table_sizes.width-table_sizes.leg_width;
-	leg4_mesh[table_index].position.y = table_sizes.width-table_sizes.leg_width;			
+	leg3_mesh[table_index].position.y = table_sizes.width - table_sizes.leg_width;
+	leg4_mesh[table_index].position.y = table_sizes.width - table_sizes.leg_width;			
 	
 	leg1_mesh[table_index].position.z = 0;
 	leg2_mesh[table_index].position.z = table_sizes.length-table_sizes.leg_width;
 	leg3_mesh[table_index].position.z = 0;
 	leg4_mesh[table_index].position.z = table_sizes.length-table_sizes.leg_width;
-	
 
+	leg1_mesh[table_index].__dirtyPosition = true;
+	leg2_mesh[table_index].__dirtyPosition = true;
+	leg3_mesh[table_index].__dirtyPosition = true;
+	leg4_mesh[table_index].__dirtyPosition = true;
+
+/* Non-Physics way:
 	table[table_index] = new THREE.Group();
 	table[table_index].position.x = -10;
-	
-	
-	table[table_index].add( leg1_mesh[table_index] );
-	table[table_index].add( leg2_mesh[table_index] );
-	table[table_index].add( leg3_mesh[table_index] );
-	table[table_index].add( leg4_mesh[table_index] );
-	table[table_index].add( table_mesh[table_index] );	
+	table[table_index].add( leg1_mesh[table_index]  );
+	table[table_index].add( leg2_mesh[table_index]  );
+	table[table_index].add( leg3_mesh[table_index]  );
+	table[table_index].add( leg4_mesh[table_index]  );
+	table[table_index].add( table_mesh[table_index] );		*/
+
+	table[table_index] = leg1_mesh[table_index];
+	table[table_index].position.x = -8.0+table_sizes.height/2;
+	table[table_index].__dirtyPosition = true;
+
+	table[table_index].add( table_mesh[table_index]  );
+	table[table_index].add( leg2_mesh[table_index]  );
+	table[table_index].add( leg3_mesh[table_index]  );
+	table[table_index].add( leg4_mesh[table_index]  );	
 }
 
 /* For now we assume all children are meshes */
@@ -130,17 +164,23 @@ function place_tables()
 
 	table[1].position.y = 0;
 	table[1].position.z = 0;
+
+	table[0].__dirtyPosition = true;	
+	table[1].__dirtyPosition = true;		
 }
 
 function construct_round_table(table_index)
 {
 	table = new THREE.Group();
-	
-	geom = new THREE.CylinderGeometry( variable.b_radius, variable.b_radius, variable.height );
-	
 
+	var table_top   = new THREE.CylinderGeometry( round_table_sizes.radius, round_table_sizes.radius, round_table_sizes.height );
+	var table_pole  = new THREE.CylinderGeometry( round_table_sizes.pole_radius, round_table_sizes.pole_radius, round_table_sizes.height );	
+
+	var table_foot1 = new THREE.BoxGeometry( round_table_sizes.foot_height, round_table_sizes.radius*0.75, round_table_sizes.foot_width  );
+	var table_foot2 = new THREE.BoxGeometry( round_table_sizes.foot_height, round_table_sizes.radius*0.75, round_table_sizes.foot_width  );
 }
 
+make_misc_materials();
 construct_table(0);
 construct_table(1);
 place_tables();

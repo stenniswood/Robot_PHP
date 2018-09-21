@@ -83,33 +83,34 @@ function set_servo_angles_rad( meshes, grip_mesh, arm_sizes, angle_set )
 		if (angle_set.unit == "Degrees")	return;
 
 		var Base = angle_set.Base - Math.PI/2.;
-		meshes.upper_arm.rotation.x = Base; 
-		meshes.upper_arm.rotation.y = angle_set.Shoulder;
-		meshes.upper_arm.updateMatrixWorld();
+		meshes.shoulder.rotation.x = Base; 
+//		meshes.upper_arm.rotation.y = angle_set.Shoulder;
+		meshes.shoulder.rotation.y = angle_set.Shoulder;		
+		meshes.shoulder.updateMatrixWorld();
 										
 		//meshes.fore_arm.rotation.x  = Base;  angle_set.Shoulder 
-		meshes.fore_arm.rotation.y  = + angle_set.Elbow;
-		meshes.fore_arm.updateMatrixWorld();
+//		meshes.fore_arm.rotation.y  = + angle_set.Elbow;
+		meshes.elbow.rotation.y  = + angle_set.Elbow;
+		meshes.elbow.updateMatrixWorld();
 		
 		// Relocate the Wrist to match the Forearm stub:	
-		var fa_vec     = new THREE.Vector3( 0,0, arm_sizes.upper_arm_length );
-		rot_point = meshes.fore_arm.localToWorld( fa_vec );
+		//var fa_vec     = new THREE.Vector3( 0,0, arm_sizes.upper_arm_length );
+		//rot_point = meshes.fore_arm.localToWorld( fa_vec );
 		
 		if (isNaN(angle_set.Wrist))	return;
 		meshes.wrist_mot.rotation.y   = + angle_set.Wrist;	//angle_set.Shoulder + angle_set.Elbow
-
 
 		// MOVE LEFT GRIPPER:	
 		if (isNaN(angle_set.WristRotate))	return;
 		grip_mesh.wrist.rotation.z = angle_set.WristRotate;
 		
 		
-		var collision = arms_collide();
+/*		var collision = arms_collide();
 		if (collision)
 		{
 			var collision_color = 0xff002f;
 			color_code_arm( r_arm_meshes, collision_color );
-		}
+		} */
 }
 
 function within_boundary( angle, boundary )

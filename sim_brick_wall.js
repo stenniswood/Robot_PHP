@@ -13,7 +13,7 @@ function make_half_brick()
 	var brick = {};
 	brick.geom	= new THREE.BoxGeometry( brick_sizes.height,  brick_sizes.width,  brick_sizes.length/2 );			
 	brick.geom.translate ( brick_sizes.height/2, 0, brick_sizes.length/4 );
-	brick.mesh  = new THREE.Mesh( brick.geom, object_materials.obj[1] );
+	brick.mesh  = new THREE.Mesh( brick.geom, object_materials.mat[1] );
 	
 	bricks.push(brick);
 	scene.add(brick.mesh);
@@ -26,7 +26,7 @@ function make_brick()
 	var brick = {};
 	brick.geom	= new THREE.BoxGeometry( brick_sizes.height,  brick_sizes.width,  brick_sizes.length );			
 	brick.geom.translate ( brick_sizes.height/2, 0, brick_sizes.length/2 );
-	brick.mesh  = new THREE.Mesh( brick.geom, object_materials.obj[1] );
+	brick.mesh  = new THREE.Mesh( brick.geom, object_materials.mat[1] );
 	
 	bricks.push(brick);
 	scene.add(brick.mesh);

@@ -73,6 +73,7 @@ function create_grip_shadow_meshes(grip_meshes)
 	scene.add( grip_meshes.wShadow );
 }
 
+
 function init_grip_locations()
 {
 	// HEIGHT :
@@ -147,3 +148,22 @@ function open_gripper( fraction, hand, grip_meshes )
 
 
 
+function init_grippers() 
+{
+	construct_gripper(l_grip_geom, l_grip_meshes, arm_material.meshMaterialJ,  arm_material.meshMaterial  );
+	construct_gripper(r_grip_geom, r_grip_meshes, arm_material.rmeshMaterialJ,  arm_material.rmeshMaterial );
+	init_grip_locations();
+
+	l_grip_meshes.wrist.position.z = arm_sizes.wrist_length/2;
+	r_grip_meshes.wrist.position.z = arm_sizes.wrist_length/2;
+	l_arm_meshes.wrist.add( l_grip_meshes.wrist );
+	r_arm_meshes.wrist.add( r_grip_meshes.wrist );
+	
+	//add_to_scene( l_grip_meshes );
+	//add_to_scene( r_grip_meshes );
+
+	create_grip_shadow_meshes(l_grip_meshes);
+	create_grip_shadow_meshes(r_grip_meshes);
+}
+
+init_grippers();

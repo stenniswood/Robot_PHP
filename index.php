@@ -102,12 +102,12 @@ table.nohover  tr:hover {background-color:#4191C1;}
 <h2>Beyond Kinetics Tank Plus</h2>
 
 <div class="tab">
-  <button class="tablinks" onclick="openPage(event, 'System')"		 	>System</button>
-  <button class="tablinks" onclick="openPage(event, 'Configuration')"	>Robot Configuration</button>
-  <button class="tablinks" onclick="openPage(event, 'Status')"		 	>Robot Status</button>
-  <button class="tablinks" onclick="openPage(event, 'ManualOverrides')"	>Manual Overrides</button>
-  <button class="tablinks" onclick="openPage(event, 'Sequencer')"		>Sequencer</button>
-  <button class="tablinks" onclick="openPage(event, 'Network')"			>Network</button>  
+  <button class="tablinks"  onclick="openPage(event, 'System')"		 	>System</button>
+  <button class="tablinks"  onclick="openPage(event, 'Configuration')"	>Robot Configuration</button>
+  <button class="tablinks"  onclick="openPage(event, 'Status')"		 	>Robot Status</button>
+  <button class="tablinks"  onclick="openPage(event, 'ManualOverrides')">Manual Overrides</button>
+  <button class="tablinks"  onclick="openPage(event, 'Sequencer')"		>Sequencer</button>
+  <button class="tablinks"  onclick="openPage(event, 'Network')"		>Network</button>  
   <button class="tablinks"  onclick="openPage(event, 'Camera')"			>Camera</button>
   <button class="tablinks"  onclick="openPage(event, 'Map')"			>Map</button>
   <button class="tablinks"  onclick="openPage(event, 'Sim3D')"			>3D Sim</button>
@@ -149,8 +149,11 @@ function openPage(evt, PageName) {
 
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(PageName).style.display = "block";
-    evt.currentTarget.className += " active";
+    if (typeof evt != "undefined")
+	    evt.currentTarget.className += " active";
 };
+//var tmp_e;
+openPage(event, 'Sim3D');
 //var tabs = document.getElementsByClassName("tablinks");
 //var event.currentTarget = tabs[0];
 </script>

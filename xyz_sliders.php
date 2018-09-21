@@ -8,44 +8,44 @@
 <table style="float:left" border="1"> <tr><th></th><th>Left</th><th></th><th>Right</th></tr>
 <tr>
 <td><span>X:</td>
-<td><input id='l_arm_position_x' type="range" min="-300" max="300" value="0.5" class="xyzslider" style="width:200" ></td>
+<td><input id='l_arm_position_x' type="range" min="-300" max="300" value="0.5" class="xyzslider" style="width:150" ></td>
 <td><span id="l_arm_position_x_label" style="width:50" >0</span></td>
-<td><input id='r_arm_position_x' type="range" min="-300" max="300" value="0.5" class="xyzslider" style="width:200" ></td>
+<td><input id='r_arm_position_x' type="range" min="-300" max="300" value="0.5" class="xyzslider" style="width:150" ></td>
 <td><span id="r_arm_position_x_label" width="50">0</span></span></td></tr>
 
 <tr>
 <td>Y: </td>
-<td><input id='l_arm_position_y' type="range" min="-300" max="300" value="0.5" class="xyzslider" style="width:200" ></td>
+<td><input id='l_arm_position_y' type="range" min="-300" max="300" value="0.5" class="xyzslider" style="width:150" ></td>
 <td><span id="l_arm_position_y_label">0</span></td>
-<td><input id='r_arm_position_y' type="range" min="-300" max="300" value="0.5" class="xyzslider" style="width:200" ></td>
+<td><input id='r_arm_position_y' type="range" min="-300" max="300" value="0.5" class="xyzslider" style="width:150" ></td>
 <td><span id="r_arm_position_y_label" width="50">0</span></span></td></tr>
 
 <tr>
 <td>Z: </td>
-<td><input id='l_arm_position_z' type="range" min="-320" max="320" value="0.5" class="xyzslider" style="width:200" ></td>
+<td><input id='l_arm_position_z' type="range" min="-320" max="320" value="0.5" class="xyzslider" style="width:150" ></td>
 <td><span id="l_arm_position_z_label">0</span></td>
-<td><input id='r_arm_position_z' type="range" min="-300" max="300" value="0.5" class="xyzslider" style="width:200" ></td>
+<td><input id='r_arm_position_z' type="range" min="-300" max="300" value="0.5" class="xyzslider" style="width:150" ></td>
 <td><span id="r_arm_position_z_label" width="50">0</span></span></td>
 
 <tr>
 <td>W: </td>
-<td><input id='l_arm_position_approach' type="range" min="-320" max="320" value="0.5" class="xyzslider" style="width:200" ></td>
+<td><input id='l_arm_position_approach' type="range" min="-320" max="320" value="0.5" class="xyzslider" style="width:150" ></td>
 <td><span id="l_arm_position_approach_label">0</span></td>
-<td><input id='r_arm_position_approach' type="range" min="-320" max="320" value="0.5" class="xyzslider" style="width:200" ></td>
+<td><input id='r_arm_position_approach' type="range" min="-320" max="320" value="0.5" class="xyzslider" style="width:150" ></td>
 <td><span id="r_arm_position_approach_label" width="50">0</span></span></td></tr>
 
 </tr>
 <td>WR: </td>
-<td><input id='l_arm_position_wrist_rotate' type="range" min="-3600" max="3600" value="0.5" class="xyzslider" style="width:200" ></td>
+<td><input id='l_arm_position_wrist_rotate' type="range" min="-3600" max="3600" value="0.5" class="xyzslider" style="width:150" ></td>
 <td><span id="l_arm_position_wrist_rotate_label">0</span></td>
-<td><input id='r_arm_position_wrist_rotate' type="range" min="-3600" max="3600" value="0.5" class="xyzslider" style="width:200" ></td>
+<td><input id='r_arm_position_wrist_rotate' type="range" min="-3600" max="3600" value="0.5" class="xyzslider" style="width:150" ></td>
 <td><span id="r_arm_position_wrist_rotate_label" width="50">0</span></span></td></tr>
 
 <tr>
 <td>Gripper:</td>
-<td><input id='l_gripper_position' type="range" min="0" max="100.00" value="0.5" class="xyzslider" style="width:200" ></td>
+<td><input id='l_gripper_position' type="range" min="0" max="100.00" value="0.5" class="xyzslider" style="width:150" ></td>
 <td><span id="l_grip">0</span></td>
-<td><input id='r_gripper_position' type="range" min="0" max="100.00" value="0.5" class="xyzslider" style="width:200" ></td>
+<td><input id='r_gripper_position' type="range" min="0" max="100.00" value="0.5" class="xyzslider" style="width:150" ></td>
 <td><span id="r_grip">0</span></td>
 </tr>
 </table>
